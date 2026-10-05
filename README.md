@@ -4,11 +4,11 @@ An interactive supply chain of who funds AI: 21 layers and ~270 players, from th
 
 Part of [Mindy's portfolio](https://mindy-portfolio.vercel.app).
 
-- **Two views, one dataset.** *Layers* is a guided, scrollable page. *Full map* is a single zoomable canvas with every company and every link: scroll or pinch to zoom, drag to pan, click a layer chip to zoom into that layer, click a logo to fly to it and open its panel. Zoom reveals more: dots, then logos, then names, then tickers.
+- **Two views, one dataset.** *Full map* (the default) is a single zoomable canvas with every company and every link: scroll or pinch to zoom, drag to pan, click a layer chip to zoom into that layer, click a logo to fly to it and open its panel. Zoom reveals more: dots, then logos, then names, then tickers. *Layers* is the guided, scrollable alternative.
 - Click any logo for what it makes, how it's doing and the opportunity.
 - Follow the amber (depends on it) and teal (it depends on) chains.
 - Filter by public, private, chokepoint, or non-company; run guided journeys such as *Your Amazon order → a quartz mine*.
-- Deep links: `#map` opens the full map, `#n=nvidia` selects a company, `#j=feed` starts a journey (combine with `&`).
+- The **full map is the default view**. Deep links: `#layers` opens the guided layer view instead, `#n=nvidia` selects a company, `#j=feed` starts a journey (combine with `&`, e.g. `#layers&n=nvidia`).
 
 ## Run locally
 

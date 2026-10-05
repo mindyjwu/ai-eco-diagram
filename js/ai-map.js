@@ -270,7 +270,7 @@
     if (n.pq) { var q = el('a', null, 'Live quote ↗'); q.href = 'https://finance.yahoo.com/quote/' + encodeURIComponent(n.pq); q.target = '_blank'; q.rel = 'noopener'; links.appendChild(q); }
     var sh = el('button', null, 'Copy link'); sh.type = 'button';
     sh.addEventListener('click', function () {
-      var url = location.origin + location.pathname + '#' + (state.mode === 'map' ? 'map&' : '') + 'n=' + id;
+      var url = location.origin + location.pathname + '#' + (state.mode === 'layers' ? 'layers&' : '') + 'n=' + id;
       (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { sh.textContent = 'Copied ✓'; }, function () { sh.textContent = url; });
       setTimeout(function () { sh.textContent = 'Copy link'; }, 2200);
     });
@@ -293,7 +293,7 @@
 
   /* ---------- selection ---------- */
   function setHash(h) {
-    var full = (state.mode === 'map' ? 'map' + (h ? '&' : '') : '') + (h || '');
+    var full = (state.mode === 'layers' ? 'layers' + (h ? '&' : '') : '') + (h || '');
     try { history.replaceState(null, '', full ? '#' + full : location.pathname + location.search); } catch (e) {}
   }
   function select(id, opts) {
@@ -725,16 +725,18 @@
     fmSvg.classList.toggle('has-active', !!active);
   }
 
-  function setMode(m) {
+  function setMode(m, noScroll) {
     if (m === state.mode) return;
     state.mode = m;
     document.body.classList.toggle('mode-map', m === 'map');
     document.querySelectorAll('[data-mode]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === m)); });
     if (m === 'map') {
       if (!FM.ready) buildFM();
-      window.scrollTo({ top: $('#map-top').offsetTop, behavior: 'auto' });
+      if (!noScroll) window.scrollTo({ top: $('#map-top').offsetTop, behavior: 'auto' });
       requestAnimationFrame(function () {
-        if (state.sel) fmFocus(state.sel); else fmFitAll(false);
+        if (state.sel) fmFocus(state.sel);
+        else if (mq.matches) fmSet(62, 14, 0.34);
+        else fmFitAll(false);
         apply();
       });
     } else {
@@ -744,7 +746,7 @@
   }
   document.querySelectorAll('[data-mode]').forEach(function (b) { b.addEventListener('click', function () { setMode(b.dataset.mode); }); });
   var openBtn = $('#open-map');
-  if (openBtn) openBtn.addEventListener('click', function () { setMode('map'); });
+  if (openBtn) openBtn.addEventListener('click', function () { setMode('layers'); window.scrollTo({ top: $('#map-top').offsetTop - 90, behavior: reduced ? 'auto' : 'smooth' }); });
 
   /* ---------- redraw on layout change ---------- */
   var raf = 0;
@@ -765,8 +767,8 @@
   /* ---------- initial state from URL ---------- */
   apply();
   var hn = /(?:^|[#&])n=([\w-]+)/.exec(location.hash), hj = /(?:^|[#&])j=([\w-]+)/.exec(location.hash);
-  var wantMap = /(?:^#|&)map(?:&|$)/.test(location.hash);
-  if (wantMap) setMode('map');
+  var wantLayers = /(?:^#|&)layers(?:&|$)/.test(location.hash);
+  if (!wantLayers) setMode('map', !(hn || hj));
   if (hn && by[hn[1]]) {
     select(hn[1]);
     if (state.mode !== 'map') setTimeout(function () { nodeEls[hn[1]].scrollIntoView({ block: 'center' }); }, 120);

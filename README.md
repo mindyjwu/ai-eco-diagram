@@ -1,13 +1,14 @@
 # AI Eco Diagram — The AI Money Map
 
-An interactive supply chain of who funds AI: 17 layers and ~220 players, from daily life (Spotify, cards, chatbots, smart homes) through apps, labs, clouds, capital, data-centre gear, energy, servers, chip designers, fabs, equipment, materials and space, down to raw quartz and copper.
+An interactive supply chain of who funds AI: 21 layers and ~270 players, from the things households actually spend on and consume (Amazon orders and recommendations, social and video feeds, banking and payments, health, payroll and work software, smart homes, cars) down through AI labs, clouds, capital, data-centre gear, energy, servers, chip designers, fabs, equipment, materials and space, to raw quartz and copper.
 
 Part of [Mindy's portfolio](https://mindy-portfolio.vercel.app).
 
+- **Two views, one dataset.** *Layers* is a guided, scrollable page. *Full map* is a single zoomable canvas with every company and every link: scroll or pinch to zoom, drag to pan, click a layer chip to zoom into that layer, click a logo to fly to it and open its panel. Zoom reveals more: dots, then logos, then names, then tickers.
 - Click any logo for what it makes, how it's doing and the opportunity.
 - Follow the amber (depends on it) and teal (it depends on) chains.
-- Filter by public, private, chokepoint, or government/raw materials.
-- Run guided journeys, e.g. one Spotify stream down to a quartz mine.
+- Filter by public, private, chokepoint, or non-company; run guided journeys such as *Your Amazon order → a quartz mine*.
+- Deep links: `#map` opens the full map, `#n=nvidia` selects a company, `#j=feed` starts a journey (combine with `&`).
 
 ## Run locally
 

@@ -213,6 +213,69 @@
     footer.foot { padding: 28px 0 90px; color: var(--muted); font-size: 13px; max-width: 80ch; }
     footer.foot p + p { margin-top: 8px; }
 
+
+    /* ===== hero CTA ===== */
+    .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 1.4rem; font-size: 14px; }
+    .btn { padding: 11px 20px; border-radius: 999px; font-weight: 700; font-size: 15px; }
+    .btn.primary { background: var(--ink); color: var(--bg); }
+    .btn.primary:hover { background: var(--accent); }
+
+    /* ===== FULL MAP ===== */
+    #fullmap { display: none; position: relative; height: calc(100vh - 57px); height: calc(100svh - 57px); min-height: 460px; overflow: hidden; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; background: radial-gradient(ellipse at 50% 0%, hsl(210 40% 50% / .08), transparent 60%), var(--bg); border-bottom: 1px solid var(--border); }
+    #fullmap.grab { cursor: grabbing; }
+    body.mode-map #fullmap { display: block; }
+    body.mode-map #map { display: none; }
+    #fm-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    #fm-rail { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .rail-chip { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6px; max-width: 190px; padding: 3px 11px 3px 4px; border-radius: 999px; background: hsl(var(--h) 60% 42%); color: #fff; font-size: 12px; font-weight: 500; white-space: nowrap; pointer-events: auto; will-change: transform; box-shadow: 0 2px 8px -2px rgba(0,0,0,.4); }
+    .rail-chip b { background: rgba(255,255,255,.24); border-radius: 999px; padding: 1px 7px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; }
+    .rail-chip .t { overflow: hidden; text-overflow: ellipsis; }
+    .rail-chip:hover { background: hsl(var(--h) 65% 34%); }
+    .band { fill: hsl(var(--h) 55% 50% / .09); stroke: hsl(var(--h) 45% 50% / .22); stroke-width: 1; vector-effect: non-scaling-stroke; }
+    html[data-mw-theme="dark"] .band { fill: hsl(var(--h) 45% 55% / .1); }
+    .be { fill: none; stroke: hsl(var(--h) 60% 48% / .34); stroke-width: 1; vector-effect: non-scaling-stroke; }
+    .fm-bg { transition: opacity .2s; }
+    #fm-svg.has-active .fm-bg { opacity: .12; }
+    .he { fill: none; stroke-width: 2.2; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-dasharray: 3 7; animation: flow 1.1s linear infinite; opacity: .6; }
+    .he.strong { stroke-width: 3.6; stroke-dasharray: 6 7; opacity: 1; }
+    .he.sup { stroke: var(--sup); } .he.cus { stroke: var(--cus); } .he.jn { stroke: var(--jn); opacity: .95; }
+    .fn { cursor: pointer; transition: opacity .2s; }
+    .fn .c { fill: #fff; stroke: hsl(var(--h) 60% 50%); stroke-width: 3; transition: fill .15s; }
+    .fn:hover .c { stroke-width: 5; }
+    .fn .mono { font: 600 17px 'Fraunces', serif; fill: #3E5A6E; pointer-events: none; }
+    .fn .mono.emo { font-size: 28px; }
+    .fn .mono.hide { display: none; }
+    .fn .lgo { pointer-events: none; }
+    .fn .lbl { font: 700 14px 'DM Sans', sans-serif; fill: var(--ink); display: none; pointer-events: none; }
+    .fn .tk { font: 500 11px 'JetBrains Mono', monospace; fill: var(--muted); display: none; pointer-events: none; }
+    .fn .dm { font-size: 14px; fill: var(--cus); pointer-events: none; }
+    .z2 .fn .lbl, .z3 .fn .lbl { display: block; }
+    .z3 .fn .tk { display: block; }
+    .z0 .fn .c { fill: hsl(var(--h) 62% 48%); }
+    .z0 .fn .mono, .z0 .fn .lgo, .z0 .fn .dm { display: none; }
+    .fn.sel .c { stroke: var(--ink); stroke-width: 7; }
+    .fn.sup .c { stroke: var(--sup); stroke-width: 6; }
+    .fn.cus .c { stroke: var(--cus); stroke-width: 6; }
+    .fn.jn .c { stroke: var(--jn); stroke-width: 6; }
+    .fn.dim { opacity: .16; }
+    .fn.off { opacity: .1; }
+    .fn.sel.off, .fn.sup.off, .fn.cus.off { opacity: .45; }
+    .z0 .fn.sel .lbl, .z1 .fn.sel .lbl, .z0 .fn.sup .lbl, .z1 .fn.sup .lbl, .z0 .fn.cus .lbl, .z1 .fn.cus .lbl { display: block; font-size: 22px; paint-order: stroke; stroke: var(--bg); stroke-width: 5px; }
+    .fm-ui { position: absolute; z-index: 5; }
+    .fm-hint { top: 12px; left: 50%; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border); font-size: 12.5px; color: var(--ink-soft); pointer-events: none; text-align: center; max-width: calc(100% - 24px); }
+    .fm-hint { transition: opacity .4s; } .fm-hint.gone { opacity: 0; }
+    .fm-btns { left: 12px; bottom: 14px; display: flex; gap: 6px; align-items: center; }
+    .fm-btns button, .fm-btns select { height: 36px; min-width: 36px; padding: 0 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); color: var(--ink); font: inherit; font-size: 13px; box-shadow: var(--shadow); }
+    .fm-btns button:hover, .fm-btns select:hover { border-color: var(--accent); color: var(--accent); }
+    .fm-btns #fm-in, .fm-btns #fm-out { font-size: 20px; line-height: 1; padding: 0; width: 36px; }
+    .fm-btns select { max-width: 170px; }
+    .fm-legend { right: 14px; bottom: 16px; display: flex; gap: 12px; font-size: 12px; color: var(--ink-soft); background: var(--glass); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); }
+    .fm-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 5px; }
+    .fm-legend i.c { border-color: var(--cus); } .fm-legend i.s { border-color: var(--sup); }
+    .fm-legend .dmd { color: var(--cus); }
+    @media (min-width: 901px) { body.has-panel .fm-legend { right: 464px; } }
+    @media (max-width: 900px) { .rail-chip .t { display: none; } .rail-chip { padding-right: 4px; } .fm-legend { display: none; } .fm-hint { font-size: 11.5px; top: 8px; } .fm-btns select { display: none; } body.has-panel .fm-btns { display: none; } }
+
     /* ===== mobile ===== */
     @media (max-width: 900px) {
       .wrap { padding: 0 14px; }
@@ -246,7 +309,11 @@
   <section class="wrap hero">
     <div class="eyebrow">An interactive supply chain</div>
     <h1>Who actually pays for <em>AI?</em></h1>
-    <p class="lede">You do, a few cents at a time. This map follows that money from your playlist, your card and your chatbot, down through the apps, labs, clouds, chips, factories, power plants and rockets, to a quartz mine in North Carolina. Click anything to see what it makes, why it matters and where you might fit.</p>
+    <p class="lede">You do, a few dollars at a time. Your Amazon orders, your feed, your paycheck, your cards, your doctor and your chatbot all run on AI, and this map follows that money down through platforms, labs, clouds, chips, factories, power plants and rockets, to a quartz mine in North Carolina. Click anything to see what it makes, why it matters and where you might fit.</p>
+    <div class="cta">
+      <button id="open-map" class="btn primary" type="button">Open the full map &rarr;</button>
+      <span class="muted">One zoomable view with every company and every link. Or scroll on for the layer-by-layer guide.</span>
+    </div>
 
     <div class="stats">
       <div class="stat"><b id="st-layers">0</b><span>layers</span></div>
@@ -269,15 +336,19 @@
   <div class="ctl" id="map-top">
     <div class="wrap">
       <input id="q" type="search" placeholder="Search (press /)" aria-label="Search companies" autocomplete="off">
+      <div class="seg" role="group" aria-label="View">
+        <button type="button" data-mode="layers" aria-pressed="true">Layers</button>
+        <button type="button" data-mode="map" aria-pressed="false">Full map</button>
+      </div>
       <div class="seg" role="group" aria-label="Lens">
         <button type="button" data-lens="all" aria-pressed="true">All</button>
         <button type="button" data-lens="public" aria-pressed="false">Public</button>
         <button type="button" data-lens="private" aria-pressed="false">Private</button>
         <button type="button" data-lens="choke" aria-pressed="false">&#9670; Chokepoints</button>
-        <button type="button" data-lens="other" aria-pressed="false">Gov &amp; raw</button>
+        <button type="button" data-lens="other" aria-pressed="false">Not a company</button>
       </div>
       <div class="seg" role="group" aria-label="Line depth">
-        <button type="button" data-depth="full" aria-pressed="true">Full chain</button>
+        <button type="button" data-depth="full" aria-pressed="true">Full</button>
         <button type="button" data-depth="direct" aria-pressed="false">Direct</button>
       </div>
       <select class="sel" id="jsel" aria-label="Guided journey"><option value="">Guided journey&hellip;</option></select>
@@ -286,6 +357,20 @@
       <span class="here">Now viewing <b id="here">00 &middot; You</b></span>
     </div>
   </div>
+
+  <!-- FULL MAP: one zoomable canvas -->
+  <section id="fullmap" aria-label="Full map of the AI supply chain">
+    <svg id="fm-svg" class="z1" role="img" aria-label="Zoomable map. Use the layer list view for a keyboard-friendly version."><g id="fm-vp"></g></svg>
+    <div id="fm-rail"></div>
+    <div class="fm-ui fm-hint">Scroll or pinch to zoom &middot; drag to pan &middot; click a logo for details &middot; click a layer chip to zoom in</div>
+    <div class="fm-ui fm-btns">
+      <button id="fm-in" type="button" aria-label="Zoom in">+</button>
+      <button id="fm-out" type="button" aria-label="Zoom out">&minus;</button>
+      <button id="fm-fit" type="button">Fit all</button>
+      <select id="fm-jump" aria-label="Jump to layer"><option value="">Jump to layer&hellip;</option></select>
+    </div>
+    <div class="fm-ui fm-legend"><span><i class="c"></i>depends on it</span><span><i class="s"></i>it depends on</span><span class="dmd">&#9670; chokepoint</span></div>
+  </section>
 
   <div class="wrap mapwrap">
     <div id="map">

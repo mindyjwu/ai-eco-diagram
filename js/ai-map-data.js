@@ -14,14 +14,30 @@ window.AIMAP = (function () {
 
 const LAYERS = [
   { id: 'you', name: 'You', h: 18,
-    sub: 'Everyday life: the demand that pays for everything below.',
+    sub: 'Everyday life: what households spend, consume and earn. Together it pays for everything below.',
     take: 'Every subscription, tap, search and prompt is a tiny payment or an ad impression. Add up billions of people and it funds the most expensive buildout in industrial history.',
     build: 'The best startup ideas start with a daily frustration. Look for moments in a normal day where an AI agent could save ten minutes, then work down this map to see what it would run on.' },
-  { id: 'apps', name: 'Apps & services you pay for', h: 32,
-    sub: 'The brands you recognise: where your money first lands.',
-    take: 'These companies turn attention and subscriptions into revenue, then rent compute from the layers below. Their margins depend on how cheap an AI query gets.',
-    build: 'The app layer is the most crowded and the fastest to build. Winning here means owning distribution, data or a workflow, not just a model wrapper.' },
-  { id: 'devices', name: 'Devices & the connected home', h: 44,
+  { id: 'shop', name: 'Shopping, delivery & logistics', h: 30,
+    sub: 'Where most household spending happens: marketplaces, retailers, delivery and the recommendation engines that steer what you buy.',
+    take: 'Retail is one of the biggest consumers of AI: search, recommendations, pricing, fraud checks, warehouse robots and delivery routing. Amazon is also the largest cloud provider, so a shopping habit and a data centre are the same business.',
+    build: 'Merchant tools, returns, last-mile logistics and agentic shopping (an AI that buys for you) are active areas. The platforms own distribution; small teams win on a niche.' },
+  { id: 'social', name: 'Social, video & search platforms', h: 335,
+    sub: 'How people spend their attention: feeds, short video, search, streaming, and the ad machines that pay for it.',
+    take: 'Attention is sold to advertisers, and AI ranking decides what each person sees. These recommendation engines are some of the largest and most profitable AI workloads in the world, and they run on huge GPU fleets.',
+    build: 'Creator tools, ad measurement, brand safety and AI-native content formats are open. The platforms are hard to displace, but they are customers for almost anything that raises engagement or lowers compute cost.' },
+  { id: 'work', name: 'Work & getting paid', h: 200,
+    sub: 'The software you do your job in, and the payroll systems that turn your work into a paycheck.',
+    take: 'Enterprise software seats are the steadiest AI revenue, and payroll companies sit on the rails that move wages. Investors debate whether AI agents will erode per-seat pricing.',
+    build: 'Vertical AI for a specific profession, payroll and benefits for new kinds of workers, and agents that finish a whole task (not just draft) are all in play.' },
+  { id: 'money', name: 'Money: banks, payments & investing', h: 150,
+    sub: 'Cards, banks, brokerages, lenders and the central-bank rails underneath them.',
+    take: 'Finance uses AI for fraud scoring, credit decisions, trading and customer service. Payment networks earn a small toll on every transaction, and your savings flow from here into the funds that finance AI itself.',
+    build: 'Fraud and risk tools, embedded finance, AI financial planning and agentic payments are active areas. It is also heavily regulated, so compliance know-how is a real edge.' },
+  { id: 'health', name: 'Health & care', h: 175,
+    sub: 'Wearables, insurers, hospitals, telehealth and AI drug discovery.',
+    take: 'Healthcare AI is where hype and real value are both highest: note-taking assistants, diagnostics and drug discovery are real, but regulation, privacy and reimbursement slow adoption.',
+    build: 'Clinical workflow tools, prior authorisation, imaging and drug-discovery platforms are where small teams find traction. Domain expertise and trust matter more than raw model quality.' },
+  { id: 'devices', name: 'Devices, cars & the connected home', h: 50,
     sub: 'Phones, cars, speakers, beds and TVs: the hardware that puts AI in your hands.',
     take: 'Hardware is the glass between you and AI. Margins are thinner than software but switching costs are real. Every device pulls on chip designers and foundries.',
     build: 'Small, specific hardware (rings, glasses, sleep covers) can scale with a good AI layer. Building the software for smart homes, health and cars is more approachable than building the hardware.' },
@@ -29,19 +45,19 @@ const LAYERS = [
     sub: 'The teams that train and serve the models.',
     take: 'Labs burn enormous capital to train models, then sell access. Revenue is growing fast, but costs are growing faster. Most are private, so ordinary investors get exposure through their partners and suppliers.',
     build: 'Training a frontier model is a capital game. Evaluation, data, safety, tooling and vertical fine-tuning are where small teams can still win.' },
-  { id: 'cloud', name: 'Cloud & compute landlords', h: 215,
+  { id: 'cloud', name: 'Cloud & compute landlords', h: 225,
     sub: 'Hyperscalers and GPU-rental clouds that turn chips into a service.',
     take: 'They buy chips and sell compute by the hour. Their capex runs to hundreds of billions per year across the group. The big question for investors is whether demand repays it.',
     build: 'Spare capacity, scheduling, inference optimisation and cost tooling are hungry markets. Cheaper tokens are a business in themselves.' },
-  { id: 'capital', name: 'Capital & financing', h: 160,
+  { id: 'capital', name: 'Capital & financing', h: 95,
     sub: 'The money that fronts the buildout before customers repay it.',
     take: 'Datacentres are financed with equity, private credit and infrastructure funds. Your retirement savings may already be in here. Watch for circular deals (a supplier investing in its own customer) and heavy debt.',
     build: 'Financing AI infrastructure is a new asset class. If you like finance, structured credit and infrastructure funds are a real career path alongside the tech.' },
-  { id: 'dc', name: 'Data-centre buildings, cooling & power gear', h: 190,
+  { id: 'dc', name: 'Data-centre buildings, cooling & power gear', h: 10,
     sub: 'The shells, chillers, switchgear and generators that keep racks alive.',
     take: 'The boring-but-essential layer. Rack power density has jumped from a few kW to over 100 kW, which pushes liquid cooling and high-voltage power gear into the spotlight.',
     build: 'Skilled trades, commissioning, cooling retrofits and power-quality tech are short on supply. Hands-on work here pays well and is hard to automate.' },
-  { id: 'energy', name: 'Energy & the grid', h: 52,
+  { id: 'energy', name: 'Energy & the grid', h: 75,
     sub: 'Power plants, turbines, transformers and fuel.',
     take: 'Electricity is the binding constraint. Grid connections take years, gas turbines and transformers are backordered, and nuclear restarts are back on the table.',
     build: 'Anything that adds power faster (grid software, flexible load, storage, permitting automation, small reactors) has a hungry buyer.' },
@@ -86,37 +102,20 @@ const LAYERS = [
 // compact constructor
 const N = (id, l, n, o) => Object.assign({ id, l, n, up: [] }, o);
 
-const NODES = [
-
-/* ---------------- 0 · YOU ---------------- */
-N('you_music', 0, 'Streaming music & podcasts', { e: '🎧', w: 'Every playlist, auto-generated mix and podcast you stream.', y: 'Recommendations and voice features run on cloud GPUs; each subscription payment ultimately helps fund data centres.', up: ['spotify', 'apple', 'sonos'] }),
-N('you_pay', 0, 'Paying with cards & phones', { e: '💳', w: 'Every tap, swipe or online checkout.', y: 'Each payment is scored by AI fraud models in milliseconds, and the network takes a tiny cut that funds more compute.', up: ['visa', 'mastercard', 'apple'] }),
-N('you_ai', 0, 'Chatting with AI assistants', { e: '🤖', w: 'Asking Claude, ChatGPT, Gemini, Copilot or Perplexity to write, plan or explain.', y: 'The most compute-hungry thing a consumer does. A heavy user can cost a lab more than a subscription earns.', up: ['anthropic', 'openai', 'google', 'microsoft', 'meta', 'perplexity'] }),
-N('you_work', 0, 'Work, code & planning', { e: '💼', w: 'Docs, email, spreadsheets, coding assistants and project planning.', y: 'Enterprise seats are the most dependable AI revenue. This is where lab revenue is growing fastest.', up: ['microsoft', 'google', 'anthropic', 'openai', 'cursor', 'adobe', 'palantir'] }),
-N('you_invest', 0, 'Investing & stock research', { e: '📈', w: 'Brokerage apps, market data and AI-assisted analysis.', y: 'Retail investors both use AI and, through their holdings, own the companies being funded.', up: ['robinhood', 'anthropic', 'openai', 'perplexity'] }),
-N('you_retire', 0, '401(k)s, pensions & index funds', { e: '🏦', w: 'Retirement savings that sit in funds you rarely look at.', y: 'Index funds are heavily weighted to AI leaders, and big asset managers also finance data centres directly. You may already be an investor in this map.', up: ['blackrock', 'blackstone', 'brookfield', 'apollo'] }),
-N('you_social', 0, 'Social, search & video', { e: '📱', w: 'Feeds, short video, search and recommendations.', y: 'Ad-funded. Ranking models run constantly, so your scrolling pays for some of the biggest GPU fleets on Earth.', up: ['meta', 'google', 'netflix', 'bytedance'] }),
-N('you_shop', 0, 'Shopping & delivery', { e: '🛒', w: 'Online orders, delivery routing, product search.', y: 'Retail media and logistics AI are big internal users of cloud compute.', up: ['amazon', 'visa', 'mastercard'] }),
-N('you_home', 0, 'Smart home & IoT', { e: '🏠', w: 'Speakers, doorbells, thermostats, lights and cameras.', y: 'Billions of low-power chips plus voice assistants that now call large models in the cloud.', up: ['amazon_devices', 'nest', 'apple', 'samsung', 'signify', 'sonos'] }),
-N('you_furniture', 0, 'Furniture, beds & appliances', { e: '🛋️', w: 'Smart mattresses, connected fridges, lamps with chips and sensors.', y: 'Even a lamp now has a Wi-Fi chip. Furniture makers are becoming hardware companies.', up: ['ikea', 'eightsleep', 'lg', 'samsung'] }),
-N('you_car', 0, 'Cars & robotaxis', { e: '🚗', w: 'Driver-assist, self-driving rides and in-car assistants.', y: 'Cars are now rolling computers: big vision models, cameras, radar and constant connectivity.', up: ['tesla', 'waymo', 'qualcomm', 'nvidia'] }),
-N('you_health', 0, 'Health & wearables', { e: '⌚', w: 'Watches, rings, sleep trackers and health coaching.', y: 'Sensors plus AI turn raw signals into advice. Health data is among the most sensitive and valuable.', up: ['apple', 'oura', 'samsung', 'nest'] }),
-N('you_game', 0, 'Gaming & XR', { e: '🎮', w: 'Consoles, PC gaming, VR and smart glasses.', y: 'Gaming built the GPU industry that now powers AI.', up: ['sony', 'nintendo', 'microsoft', 'nvidia', 'essilor', 'meta'] }),
-N('you_connect', 0, 'Internet anywhere', { e: '📡', w: 'Satellite broadband on planes, ships and farms, and satellite messaging on phones.', y: 'Space-based connectivity is now a consumer product, and could connect AI to places fibre never will.', up: ['starlink', 'ast', 'globalstar'] }),
-N('you_learn', 0, 'Learning & creating', { e: '🎨', w: 'Tutoring, writing, music, images and video made with AI.', y: 'Creative tools drive heavy, spiky compute use, especially image and video generation.', up: ['openai', 'google', 'adobe', 'anthropic'] }),
+let NODES = [
 
 /* ---------------- 1 · APPS ---------------- */
-N('spotify', 1, 'Spotify', { d: 'spotify.com', q: 'SPOT', w: 'Music and podcast streaming at the scale of hundreds of millions of monthly users, with AI-driven playlists and DJ features.', y: 'A clean example of AI as a feature: Spotify rents compute rather than building chips.', p: 'Reached sustained profitability from 2024 after years of losses. The story now is pricing power, ads and personalisation.', o: 'Product, data and ML roles. For founders, AI music and audio tools sit on top of platforms like this.', up: ['gcloud'] }),
-N('netflix', 1, 'Netflix', { d: 'netflix.com', q: 'NFLX', w: 'Streaming video with ML-based recommendations and encoding; runs mostly on AWS.', y: 'Heavy but steady compute for personalisation, encoding and delivery.', p: 'Ad tier and password-sharing crackdown drove growth in 2023-25.', up: ['aws'] }),
-N('meta', 1, 'Meta', { d: 'meta.com', q: 'META', w: 'Facebook, Instagram, WhatsApp, with AI-ranked feeds and ads, plus smart glasses.', y: 'Among the biggest AI capex spenders. Ad revenue pays for it.', p: 'Ad growth has been strong, but investors scrutinise the steep rise in AI infrastructure spending.', up: ['meta_ai', 'meta_infra'] }),
+N('spotify', 1, 'Spotify', { d: 'spotify.com', q: 'SPOT', w: 'Music and podcast streaming at the scale of hundreds of millions of monthly users, with AI-driven playlists and DJ features.', y: 'A clean example of AI as a feature: Spotify rents compute rather than building chips.', p: 'Reached sustained profitability from 2024 after years of losses. The story now is pricing power, ads and personalisation.', o: 'Product, data and ML roles. For founders, AI music and audio tools sit on top of platforms like this.', up: ['gcloud', 'recsys'] }),
+N('netflix', 1, 'Netflix', { d: 'netflix.com', q: 'NFLX', w: 'Streaming video with ML-based recommendations and encoding; runs mostly on AWS.', y: 'Heavy but steady compute for personalisation, encoding and delivery.', p: 'Ad tier and password-sharing crackdown drove growth in 2023-25.', up: ['aws', 'recsys'] }),
+N('meta', 1, 'Meta', { d: 'meta.com', q: 'META', w: 'Facebook, Instagram, WhatsApp, with AI-ranked feeds and ads, plus smart glasses.', y: 'Nearly all revenue is advertising, so AI ranking is the business. It is among the biggest AI capex spenders, and ad revenue pays for it.', p: 'Ad growth has been strong, but investors scrutinise the steep rise in AI infrastructure spending.', up: ['meta_ai', 'meta_infra', 'recsys'] }),
 N('google', 1, 'Google / Alphabet', { d: 'google.com', q: 'GOOGL', w: 'Search, YouTube, Android, Gemini app, AI Overviews and Workspace.', y: 'The only giant that owns every layer: apps, models, cloud, chips (TPU) and even robotaxis.', p: 'Search has held up better than feared; Cloud and Gemini momentum improved through 2025.', up: ['deepmind', 'gcloud', 'google_tpu'] }),
 N('microsoft', 1, 'Microsoft', { d: 'microsoft.com', q: 'MSFT', w: 'Windows, Microsoft 365 with Copilot, GitHub, LinkedIn, Xbox.', y: 'Sells AI through the software enterprises already pay for. Holds a large stake in OpenAI after the 2025 restructuring.', p: 'Azure growth powered by AI demand. Capacity, not demand, has been the limit.', up: ['azure', 'openai', 'nvidia'] }),
-N('amazon', 1, 'Amazon', { d: 'amazon.com', q: 'AMZN', w: 'Retail marketplace, logistics, Prime Video, Alexa+. AWS is a separate node below.', y: 'Uses AI everywhere in logistics and recommendations, and sells AI via AWS.', p: 'Retail margins and AWS growth both matter to the story.', up: ['aws'] }),
-N('visa', 1, 'Visa', { d: 'visa.com', q: 'V', w: 'Global card payments network with AI-based fraud scoring.', y: 'AI is invisible at checkout. The network earns a small toll on commerce.', p: 'Steady compounding from volume growth and cross-border payments. Agentic commerce is the new bet.', o: 'Payments plus AI agents ("agentic commerce") is an open startup area.' }),
-N('mastercard', 1, 'Mastercard', { d: 'mastercard.com', q: 'MA', w: 'Global card network with AI fraud and identity products.', y: 'Same toll-road model as Visa.', p: 'Consistent growth; both networks face regulatory pressure on fees.' }),
+N('amazon', 1, 'Amazon', { d: 'amazon.com', q: 'AMZN', w: 'Retail marketplace, logistics, Prime Video, Alexa+. AWS is a separate node below.', y: 'Uses AI everywhere in logistics and recommendations, and sells AI via AWS.', p: 'Retail margins and AWS growth both matter to the story.', up: ['aws', 'anthropic', 'visa', 'mastercard', 'recsys'] }),
+N('visa', 1, 'Visa', { d: 'visa.com', q: 'V', w: 'Global card payments network with AI-based fraud scoring.', up: ['recsys'], y: 'AI is invisible at checkout. The network earns a small toll on commerce.', p: 'Steady compounding from volume growth and cross-border payments. Agentic commerce is the new bet.', o: 'Payments plus AI agents ("agentic commerce") is an open startup area.' }),
+N('mastercard', 1, 'Mastercard', { d: 'mastercard.com', q: 'MA', w: 'Global card network with AI fraud and identity products.', up: ['recsys'], y: 'Same toll-road model as Visa.', p: 'Consistent growth; both networks face regulatory pressure on fees.' }),
 N('robinhood', 1, 'Robinhood', { d: 'robinhood.com', q: 'HOOD', w: 'Retail brokerage, crypto and prediction markets, with an AI assistant.', y: 'Shows how AI is being embedded in consumer finance.', p: 'Joined the S&P 500 in 2025 after a big rally. High growth, high volatility.', up: ['aws'] }),
 N('adobe', 1, 'Adobe', { d: 'adobe.com', q: 'ADBE', w: 'Creative Cloud, Firefly image/video models, Acrobat AI.', y: 'Test case for whether generative AI strengthens or erodes software moats.', p: 'Solid cash flow; valuation reflects debate over AI disruption.', up: ['aws', 'azure'] }),
-N('bytedance', 1, 'ByteDance (TikTok)', { d: 'bytedance.com', s: 'Private', w: 'TikTok, Douyin, CapCut and the Doubao AI assistant.', y: 'Arguably the best recommendation engine in the world, and a large buyer of AI compute.', p: 'One of the most valuable private companies. TikTok US operations were reportedly restructured into a US-led joint venture.', up: ['oracle', 'nvidia'] }),
+N('bytedance', 1, 'ByteDance (TikTok)', { d: 'bytedance.com', s: 'Private', w: 'TikTok, Douyin, CapCut and the Doubao AI assistant.', y: 'Arguably the best recommendation engine in the world, and a large buyer of AI compute.', p: 'One of the most valuable private companies. TikTok US operations were reportedly restructured into a US-led joint venture.', up: ['oracle', 'nvidia', 'recsys'] }),
 N('waymo', 1, 'Waymo', { d: 'waymo.com', s: 'Alphabet subsidiary', w: 'Fully driverless ride-hailing in multiple US cities.', y: 'Real-world AI at scale: lidar, cameras and models making life-or-death decisions.', p: 'Paid rides have been growing rapidly, with hundreds of thousands per week reported.', up: ['gcloud', 'google_tpu'] }),
 N('palantir', 1, 'Palantir', { d: 'palantir.com', q: 'PLTR', w: 'Foundry, AIP and Gotham: operational AI platforms for governments and enterprises.', y: 'Sells the layer that connects company data to models.', p: 'Revenue growth accelerated with AIP. Valuation multiples are extremely high, so expectations are too.', up: ['aws', 'azure', 'nvidia'] }),
 N('cursor', 1, 'Cursor (Anysphere)', { d: 'cursor.com', s: 'Private', w: 'AI-native code editor used by millions of developers.', y: 'Poster child for the AI-native app. Its biggest cost is paying model labs.', p: 'Among the fastest-growing software start-ups ever. Reported valuation near $30B in late 2025.', o: 'Shows how a small team can hit scale quickly. Margin risk comes from model API costs.', up: ['anthropic', 'openai'] }),
@@ -340,22 +339,136 @@ N('china_gallium', 16, 'China: gallium, germanium & rare-earth refining', { e: '
 N('neon_helium', 16, 'Neon & helium', { e: '🎈', s: 'Commodity gases', w: 'Neon for lithography lasers; helium for cooling and leak-testing.', y: 'The 2022 war in Ukraine disrupted neon supply and forced fabs to diversify. Helium comes from a few places, notably the US and Qatar.' }),
 N('water', 16, 'Fresh water', { e: '💧', s: 'Resource', w: 'Fabs use huge volumes of ultra-pure water; data centres use water for cooling.', y: 'Water is a hidden constraint in dry regions such as Arizona and Taiwan.' }),
 N('tin_tungsten', 16, 'Tin & tungsten', { e: '🪙', s: 'Metals', w: 'Tin droplets are vaporised to create EUV light; tungsten forms contacts in chips.', y: 'Both come from a small set of countries.' })
+,
 
+/* ================= v2: household-scale consumer layers ================= */
+
+/* ---- YOU ---- */
+N('you_shop', 'you', 'Shopping & home delivery', { e: '🛒', w: 'Everything you buy online or in store: groceries, household goods, gifts, takeaway, rides.', y: 'The largest slice of household spending that touches AI. Search, recommendations, pricing, fraud checks and delivery routing all run on models, and the retailer pays for the compute.', up: ['amazon', 'walmart', 'shopify', 'temu', 'costco', 'ups', 'fedex', 'doordash', 'uber', 'ikea'] }),
+N('you_scroll', 'you', 'Social, short video & search', { e: '📱', w: 'TikTok, YouTube, Instagram, X, Reddit, Google: how you find things and fill spare minutes.', y: 'Free to you, paid for by advertisers. AI ranking decides every item you see, and it runs on some of the largest GPU fleets on Earth.', up: ['youtube', 'bytedance', 'meta', 'google', 'snap', 'reddit', 'pinterest', 'x_twitter', 'perplexity'] }),
+N('you_stream', 'you', 'Streaming TV, music & podcasts', { e: '🎬', w: 'Netflix, YouTube, Disney+, Spotify and the rest of your subscriptions.', y: 'Subscriptions plus ads. Personalisation, encoding and delivery run in the cloud.', up: ['netflix', 'youtube', 'disney', 'spotify'] }),
+N('you_game', 'you', 'Gaming & XR', { e: '🎮', w: 'Consoles, PC gaming, Roblox, VR and smart glasses.', y: 'Gaming built the GPU industry that now powers AI.', up: ['sony', 'nintendo', 'microsoft', 'nvidia', 'roblox', 'essilor', 'meta'] }),
+N('you_paycheck', 'you', 'Getting paid: payroll, benefits & taxes', { e: '💵', w: 'The salary, bonus or gig payment that lands in your account, and the taxes and benefits around it.', y: 'Payroll software calculates, taxes and moves your pay over bank rails. AI is entering payroll, benefits and tax prep, and it also decides whether your job gets automated.', up: ['adp', 'paychex', 'workday', 'gusto', 'rippling', 'deel', 'intuit'] }),
+N('you_job', 'you', 'Doing the job: docs, code & meetings', { e: '💼', w: 'The software and AI assistants you use at work.', y: 'Enterprise seats are the most dependable AI revenue, and where lab revenue is growing fastest.', up: ['microsoft', 'gworkspace', 'salesforce', 'servicenow', 'zoom', 'atlassian', 'sap', 'adobe', 'cursor', 'palantir', 'anthropic', 'openai'] }),
+N('you_pay', 'you', 'Cards, banking & payments', { e: '💳', w: 'Every tap, transfer, bill and subscription charge.', y: 'Each payment is scored by AI fraud models in milliseconds, and the network takes a tiny cut that funds more compute.', up: ['jpm', 'bofa', 'visa', 'mastercard', 'paypal', 'block', 'stripe', 'affirm', 'apple'] }),
+N('you_invest', 'you', 'Investing, saving & crypto', { e: '📈', w: 'Brokerage apps, savings, crypto and AI-assisted research.', y: 'Retail investors both use AI and, through their holdings, own the companies being funded.', up: ['robinhood', 'schwab', 'coinbase', 'anthropic', 'openai', 'perplexity'] }),
+N('you_retire', 'you', '401(k)s, pensions & index funds', { e: '🏦', w: 'Retirement savings that sit in funds you rarely look at.', y: 'Index funds are heavily weighted to AI leaders, and big asset managers also finance data centres directly. You may already be an investor in this map.', up: ['blackrock', 'blackstone', 'brookfield', 'apollo'] }),
+N('you_health', 'you', 'Health, fitness & care', { e: '⚕️', w: 'Your watch or ring, your insurer, your doctor, pharmacy and telehealth.', y: 'AI note-takers, diagnostics and drug discovery are reshaping healthcare, and it is among the biggest per-person spending categories.', up: ['apple', 'whoop', 'oura', 'garmin', 'unitedhealth', 'cvs', 'epic', 'abridge', 'teladoc', 'hims', 'tempus', 'doximity'] }),
+N('you_ai', 'you', 'Chatting with AI assistants', { e: '🤖', w: 'Asking Claude, ChatGPT, Gemini, Copilot, Grok or Perplexity to write, plan or explain.', y: 'The most compute-hungry thing a consumer does. A heavy user can cost a lab more than a subscription earns.', up: ['anthropic', 'openai', 'google', 'microsoft', 'meta', 'perplexity', 'xai'] }),
+N('you_home', 'you', 'Smart home & IoT', { e: '🏠', w: 'Speakers, doorbells, thermostats, lights, cameras and robot vacuums.', y: 'Billions of low-power chips plus voice assistants that now call large models in the cloud.', up: ['amazon_devices', 'nest', 'apple', 'samsung', 'signify', 'sonos'] }),
+N('you_furniture', 'you', 'Furniture, beds & appliances', { e: '🛋️', w: 'Smart mattresses, connected fridges, lamps with chips and sensors.', y: 'Even a lamp now has a Wi-Fi chip. Furniture makers are becoming hardware companies.', up: ['ikea', 'eightsleep', 'lg', 'samsung'] }),
+N('you_car', 'you', 'Cars & robotaxis', { e: '🚗', w: 'Driver-assist, self-driving rides and in-car assistants.', y: 'Cars are now rolling computers: big vision models, cameras, radar and constant connectivity.', up: ['tesla', 'waymo', 'qualcomm', 'nvidia'] }),
+N('you_connect', 'you', 'Internet anywhere', { e: '📡', w: 'Satellite broadband on planes, ships and farms, and satellite messaging on phones.', y: 'Space-based connectivity is now a consumer product, and could connect AI to places fibre never will.', up: ['starlink', 'ast', 'globalstar'] }),
+N('you_learn', 'you', 'Learning & creating', { e: '🎨', w: 'Tutoring, writing, music, images and video made with AI.', y: 'Creative tools drive heavy, spiky compute use, especially image and video generation.', up: ['openai', 'google', 'adobe', 'anthropic'] }),
+
+/* ---- SHOP ---- */
+N('walmart', 'shop', 'Walmart', { d: 'walmart.com', q: 'WMT', w: 'Largest retailer; uses AI for search, inventory and supply-chain forecasting, and announced in-chat shopping with OpenAI in 2025.', y: 'Shows how a store giant becomes a tech buyer.', p: 'Steady growth with a fast-growing e-commerce and ads business.', up: ['azure', 'gcloud', 'openai', 'visa', 'mastercard'] }),
+N('shopify', 'shop', 'Shopify', { d: 'shopify.com', q: 'SHOP', w: 'Commerce platform for millions of merchants, with AI assistants and agent-checkout integrations.', y: 'The rails small brands sell on, and a key gateway for AI shopping agents.', up: ['gcloud', 'openai', 'stripe'] }),
+N('temu', 'shop', 'Temu (PDD Holdings)', { d: 'temu.com', q: 'PDD', w: 'Ultra-low-price marketplace known for an aggressive recommendation algorithm.', y: 'Proof of how powerful a ranking engine can be, and how exposed to trade policy.', p: 'US tariff and customs changes in 2025 squeezed its low-price model.' }),
+N('costco', 'shop', 'Costco', { d: 'costco.com', q: 'COST', w: 'Membership warehouse club; a steady, less AI-exposed counterweight.', y: 'Useful contrast: great retail with a modest AI footprint.', up: ['visa'] }),
+N('ups', 'shop', 'UPS', { d: 'ups.com', q: 'UPS', w: 'Parcel delivery; AI route optimisation (ORION) and automated sorting hubs.', y: 'The physical half of e-commerce.' }),
+N('fedex', 'shop', 'FedEx', { d: 'fedex.com', q: 'FDX', w: 'Parcel and freight delivery; AI-driven logistics and network planning.', y: 'Another backbone of home delivery.' }),
+N('doordash', 'shop', 'DoorDash', { d: 'doordash.com', q: 'DASH', w: 'Food and grocery delivery; ML for dispatch and recommendations.', y: 'Real-time logistics is one of the hardest ML problems in consumer tech.', up: ['aws'] }),
+N('uber', 'shop', 'Uber', { d: 'uber.com', q: 'UBER', w: 'Rides and delivery; partners with Waymo and others for robotaxis.', y: 'Aggregator that could benefit or be disrupted as autonomy arrives.', up: ['oracle', 'gcloud', 'waymo'] }),
+
+/* ---- SOCIAL ---- */
+N('youtube', 'social', 'YouTube', { d: 'youtube.com', s: 'Alphabet', w: 'World\'s largest video platform, with shorts, music, TV apps and a huge creator economy.', y: 'The company has said recommendations drive a large share of what people watch (it has cited roughly 70%). That engine is a major TPU and GPU customer.', p: 'Ads plus subscriptions are one of Alphabet\'s largest revenue lines.', o: 'Creator tools, analytics and AI video are huge adjacent markets.', up: ['google_tpu', 'gcloud', 'deepmind'] }),
+N('snap', 'social', 'Snap', { d: 'snap.com', q: 'SNAP', w: 'Snapchat, AR filters and Spectacles glasses.', y: 'A smaller platform that depends on cloud AI to compete on ads.', up: ['gcloud', 'aws'] }),
+N('reddit', 'social', 'Reddit', { d: 'reddit.com', q: 'RDDT', w: 'Forum platform whose conversations are licensed as AI training and search data.', y: 'Shows how human-written content became a paid input to AI.', p: 'Stock surged after IPO on ads growth and data-licensing deals.', up: ['gcloud'] }),
+N('pinterest', 'social', 'Pinterest', { d: 'pinterest.com', q: 'PINS', w: 'Visual discovery and shopping platform with AI-driven recommendations.', y: 'A clean example of recommendation-led shopping.', up: ['aws'] }),
+N('x_twitter', 'social', 'X (Twitter)', { d: 'x.com', s: 'Private (merged with xAI)', w: 'Social network and distribution channel for the Grok assistant.', y: 'Merged with xAI in 2025, tying social data directly to a model lab.', up: ['xai', 'oracle'] }),
+N('disney', 'social', 'Disney', { d: 'disney.com', q: 'DIS', w: 'Disney+, ESPN, parks and studios; reported licensing and investment deal with OpenAI.', y: 'Hollywood\'s big test of generative AI: threat to creators, tool for studios.', up: ['aws'] }),
+N('roblox', 'social', 'Roblox', { d: 'roblox.com', q: 'RBLX', w: 'User-generated game platform for hundreds of millions of players, mostly young.', y: 'Heavy real-time compute and a safety-moderation challenge.' }),
+N('applovin', 'social', 'AppLovin', { d: 'applovin.com', q: 'APP', w: 'AI ad-optimisation engine that matches advertisers to mobile app audiences.', y: 'Example of a pure AI-for-ads business with huge margins.', up: ['recsys'], p: 'Shares rose sharply on the success of its AI ad engine, with periodic short-seller scrutiny.' }),
+N('trade_desk', 'social', 'The Trade Desk', { d: 'thetradedesk.com', q: 'TTD', w: 'Independent platform advertisers use to buy ads across the web, with AI bidding.', y: 'Challenger to the walled gardens, now competing with Amazon\'s ad tools.', p: 'Growth slowed and the stock fell on competition concerns.', up: ['recsys', 'aws'] }),
+
+/* ---- WORK ---- */
+N('gworkspace', 'work', 'Google Workspace', { d: 'workspace.google.com', s: 'Alphabet', w: 'Gmail, Docs, Meet and Drive with Gemini built in.', y: 'Google\'s answer to Microsoft 365 for AI at work.', up: ['deepmind', 'gcloud'] }),
+N('salesforce', 'work', 'Salesforce', { d: 'salesforce.com', q: 'CRM', w: 'CRM and Slack, with Agentforce AI agents for sales and service.', y: 'Bet that agents will do work seats used to do.', p: 'Debate over whether AI agents expand or shrink per-seat software.', up: ['aws', 'gcloud', 'anthropic', 'openai'] }),
+N('servicenow', 'work', 'ServiceNow', { d: 'servicenow.com', q: 'NOW', w: 'Workflow automation for IT, HR and customer service, with AI agents.', y: 'The plumbing of big-company back offices.', up: ['nvidia', 'azure'] }),
+N('workday', 'work', 'Workday', { d: 'workday.com', q: 'WDAY', w: 'HR, payroll and finance software for large employers, with AI agents.', y: 'Holds the records of who works where and what they are paid.', up: ['aws', 'gcloud'] }),
+N('adp', 'work', 'ADP', { d: 'adp.com', q: 'ADP', w: 'Payroll for roughly one in six US workers (company-cited scale), plus HR and benefits.', y: 'Moves wages over bank rails every pay cycle, and is adding AI assistants.', p: 'Stable, cash-rich business; AI is both a tool and a threat to headcount-based pricing.', o: 'Look at how payroll evolves for gig, freelance and AI-augmented workers.', up: ['jpm', 'fed'] }),
+N('paychex', 'work', 'Paychex', { d: 'paychex.com', q: 'PAYX', w: 'Payroll and HR for small and mid-sized businesses.', y: 'Runs payroll for millions of small-business employees.', up: ['jpm', 'fed'] }),
+N('gusto', 'work', 'Gusto', { d: 'gusto.com', s: 'Private', w: 'Payroll, benefits and HR for small businesses.', y: 'Startup-friendly payroll that adds AI help for small employers.', up: ['jpm', 'fed'] }),
+N('rippling', 'work', 'Rippling', { d: 'rippling.com', s: 'Private', w: 'Employee platform combining payroll, IT and HR.', y: 'A fast-growing challenger to the incumbents.', up: ['fed'] }),
+N('deel', 'work', 'Deel', { d: 'deel.com', s: 'Private', w: 'Global payroll and contractor payments across countries.', y: 'Shows how remote work turned payroll into a borderless product.', up: ['fed', 'stripe'] }),
+N('zoom', 'work', 'Zoom', { d: 'zoom.us', q: 'ZM', w: 'Video meetings and AI companion features; invested in Anthropic.', y: 'Example of an incumbent adding AI assistants.', up: ['aws', 'oracle', 'anthropic'] }),
+N('atlassian', 'work', 'Atlassian', { d: 'atlassian.com', q: 'TEAM', w: 'Jira, Confluence and team tools with Rovo AI.', y: 'Where many software teams plan their work.', up: ['aws'] }),
+N('sap', 'work', 'SAP', { d: 'sap.com', q: 'SAP', w: 'Enterprise software running finance and supply chains for large firms.', y: 'Business-critical systems that AI agents want to plug into.', up: ['azure', 'aws', 'gcloud'] }),
+
+/* ---- MONEY ---- */
+N('jpm', 'money', 'JPMorgan Chase', { d: 'jpmorganchase.com', q: 'JPM', w: 'Largest US bank; one of the biggest corporate AI spenders and a major cloud customer.', y: 'Moves a large share of payroll and card flows, and funds many AI infrastructure deals.', p: 'Consistently profitable; uses AI for fraud, coding and client service.', up: ['aws', 'azure', 'fed'] }),
+N('bofa', 'money', 'Bank of America', { d: 'bankofamerica.com', q: 'BAC', w: 'Major US bank; its Erica assistant handles billions of customer requests.', y: 'One of the early consumer-bank AI deployments.', up: ['fed'] }),
+N('paypal', 'money', 'PayPal', { d: 'paypal.com', q: 'PYPL', w: 'Digital wallet and checkout; partners on agent-driven shopping.', y: 'Checkout is a key battleground for AI shopping agents.', up: ['gcloud', 'fed'] }),
+N('block', 'money', 'Block (Square, Cash App)', { d: 'block.xyz', q: 'XYZ', w: 'Payments for small merchants and a consumer app with a large user base.', y: 'Small-business and consumer finance on one platform.', up: ['aws', 'fed'] }),
+N('stripe', 'money', 'Stripe', { d: 'stripe.com', s: 'Private', w: 'Payments infrastructure used by a large share of internet businesses; powers agent checkout.', y: 'The default payments API for AI companies and web shops.', o: 'Developer-friendly fintech infrastructure is a proven startup path.', up: ['aws', 'fed'] }),
+N('schwab', 'money', 'Charles Schwab', { d: 'schwab.com', q: 'SCHW', w: 'Brokerage and wealth manager with trillions in client assets.', y: 'Where many households hold the AI-heavy index funds.', up: ['fed'] }),
+N('affirm', 'money', 'Affirm', { d: 'affirm.com', q: 'AFRM', w: 'Buy-now-pay-later lender that uses ML for instant credit decisions.', y: 'Real-time credit scoring at checkout.', up: ['aws', 'fed'] }),
+N('coinbase', 'money', 'Coinbase', { d: 'coinbase.com', q: 'COIN', w: 'Crypto exchange; building payment rails for AI agents.', y: 'Possible rails for machine-to-machine payments.', up: ['aws'] }),
+N('intuit', 'money', 'Intuit', { d: 'intuit.com', q: 'INTU', w: 'TurboTax, QuickBooks, Credit Karma and Mailchimp, with a strong AI push.', y: 'Where many people file taxes and small businesses keep their books.', up: ['aws', 'openai'] }),
+N('fed', 'money', 'Federal Reserve payment rails (ACH, FedNow)', { e: '🏛️', s: 'Government / central bank', w: 'The public infrastructure that moves paychecks and bank transfers.', y: 'Almost every payroll run ends up on these rails.' }),
+
+/* ---- HEALTH ---- */
+N('whoop', 'health', 'WHOOP', { d: 'whoop.com', s: 'Private', w: 'Subscription wearable for recovery and training.', y: 'Sensor data plus AI coaching is the wearable business model.' }),
+N('garmin', 'health', 'Garmin', { d: 'garmin.com', q: 'GRMN', w: 'Sports watches, fitness trackers and GPS devices.', y: 'Profitable hardware brand that stays out of the AI arms race.' }),
+N('unitedhealth', 'health', 'UnitedHealth', { d: 'unitedhealthgroup.com', q: 'UNH', w: 'Largest US health insurer and operator of Optum care and data businesses.', y: 'Huge data owner and heavy AI user; faces scrutiny over AI in claims decisions.', p: 'Shares fell sharply in 2025 on rising medical costs and investigations.' }),
+N('cvs', 'health', 'CVS Health', { d: 'cvshealth.com', q: 'CVS', w: 'Pharmacy chain, Aetna insurer and primary-care clinics.', y: 'Where pharmacy, insurance and AI meet.' }),
+N('epic', 'health', 'Epic Systems', { d: 'epic.com', s: 'Private', w: 'Electronic health records used by most large US hospitals.', y: 'The data system of record for care; adding generative AI with Microsoft.', up: ['azure', 'openai'] }),
+N('abridge', 'health', 'Abridge', { d: 'abridge.com', s: 'Private', w: 'Ambient AI that writes clinical notes from doctor-patient conversations.', y: 'One of the clearest healthcare AI wins: it gives clinicians time back.', o: 'Shows a workflow where AI saves hours of pure paperwork.' }),
+N('teladoc', 'health', 'Teladoc', { d: 'teladochealth.com', q: 'TDOC', w: 'Virtual care and telehealth.', y: 'An early digital-health giant under pressure to reinvent itself.' }),
+N('hims', 'health', 'Hims & Hers', { d: 'forhims.com', q: 'HIMS', w: 'Direct-to-consumer telehealth for weight, hair and wellness.', y: 'Consumer health brand that grew fast and is volatile.' }),
+N('tempus', 'health', 'Tempus AI', { d: 'tempus.com', q: 'TEM', w: 'Genomic testing and clinical data used to guide cancer treatment.', y: 'AI plus a large proprietary clinical dataset.' }),
+N('recursion', 'health', 'Recursion', { d: 'recursion.com', q: 'RXRX', w: 'AI drug-discovery company with a large biology dataset; NVIDIA is an investor.', y: 'A test of whether AI can shorten the decade-long drug timeline.', p: 'Speculative; clinical results matter more than model news.', up: ['nvidia'] }),
+N('isomorphic', 'health', 'Isomorphic Labs', { d: 'isomorphiclabs.com', s: 'Alphabet', w: 'DeepMind spin-out applying AlphaFold-style AI to drug design.', y: 'The most prominent AI-first drug-discovery lab.', up: ['gcloud', 'deepmind'] }),
+N('doximity', 'health', 'Doximity', { d: 'doximity.com', q: 'DOCS', w: 'Professional network for US doctors with AI note and referral tools.', y: 'Where physicians already spend time.', up: ['aws'] }),
+
+/* ---- concept hub: the AI engines behind commerce, feeds, payments ---- */
+N('recsys', 'labs', 'Recommendation, ranking & risk models', { e: '🎯', s: 'Technology, not a company', w: 'The models that decide which product you see, which video plays next, which ad shows, and whether a payment looks like fraud.', y: 'The oldest and most profitable AI workload. It is the engine behind e-commerce, feeds, ads and card security, and it runs on GPUs, TPUs and custom chips around the clock.', o: 'Anywhere ranking or scoring creates money (shopping, ads, lending, hiring) is a market. Cheaper inference makes it bigger.', up: ['nvidia', 'google_tpu', 'aws_trainium', 'meta_infra', 'amd'] })
 ];
 
 /* ---------------- guided journeys ---------------- */
 const JOURNEYS = [
-  { id: 'spotify', title: 'One Spotify stream → a quartz mine',
-    blurb: 'Follow a single song down seven layers to the sand it ultimately depends on.',
+  { id: 'amazon', title: 'Your Amazon order → a quartz mine',
+    blurb: 'Follow a single purchase from a recommendation to the sand inside the chip that made it.',
     steps: [
-      ['you_music', 'You press play. A few cents of your subscription start moving.'],
-      ['spotify', 'Spotify earns it and uses ML to pick your next song, and pays others for the compute.'],
-      ['gcloud', 'Spotify runs on Google Cloud, which rents it servers by the hour.'],
-      ['nvidia', 'Those servers use NVIDIA GPUs (and Google\'s own TPUs) for recommendations.'],
-      ['tsmc', 'NVIDIA designs the chip; TSMC physically makes it.'],
+      ['you_shop', 'You tap "buy" on something a recommendation engine put in front of you.'],
+      ['amazon', 'Amazon earns the sale, runs the marketplace, and pays for the AI behind search, ads and delivery.'],
+      ['aws', 'All of that runs on AWS, Amazon\'s own cloud, which doubles as its biggest profit engine.'],
+      ['aws_trainium', 'Part of the AI work runs on Amazon\'s custom Trainium chips.'],
+      ['tsmc', 'Those chips are made by TSMC.'],
       ['sumco', 'TSMC starts with silicon wafers from companies like SUMCO.'],
       ['crucible', 'Wafers are sliced from a crystal that grows inside a quartz crucible.'],
       ['quartz_corp', 'That crucible needs some of the purest quartz on Earth, from a few mines in North Carolina and Norway.']
+    ] },
+  { id: 'feed', title: 'Your YouTube feed → tin in EUV light',
+    blurb: 'Why scrolling is really a bet on TPUs, TSMC and a laser that vaporises tin.',
+    steps: [
+      ['you_scroll', 'You open an app and swipe. Advertisers, not you, pay for it.'],
+      ['youtube', 'YouTube\'s recommendation engine decides what plays next, and it is a major compute customer.'],
+      ['google_tpu', 'It runs on Google\'s own TPU chips.'],
+      ['tsmc', 'TPUs are manufactured by TSMC.'],
+      ['asml', 'TSMC\'s leading-edge fabs depend on ASML\'s EUV machines.'],
+      ['tin_tungsten', 'Each EUV machine makes its light by zapping tiny tin droplets with a laser, so a metal that also goes in solder ends up inside your phone\'s chip.']
+    ] },
+  { id: 'paycheck', title: 'Your paycheck → copper in a cooling unit',
+    blurb: 'Follow the money that pays you, down to the metal in the machines that process it.',
+    steps: [
+      ['you_paycheck', 'Your employer pays you, usually via a payroll company.'],
+      ['adp', 'Payroll firms like ADP calculate pay, taxes and benefits.'],
+      ['jpm', 'The money moves through banks such as JPMorgan.'],
+      ['aws', 'Banks increasingly run on cloud providers like AWS.'],
+      ['vertiv', 'AWS data centres rely on cooling and power gear from firms like Vertiv.'],
+      ['freeport', 'That gear is full of copper, so the chain ends at a mine.']
+    ] },
+  { id: 'health', title: 'Your doctor\'s chart → the EUV machine',
+    blurb: 'From a medical record to the lithography tool that prints the chips behind it.',
+    steps: [
+      ['you_health', 'You visit a doctor.'],
+      ['epic', 'Your record sits in Epic, the system used by most large US hospitals.'],
+      ['azure', 'Epic\'s generative AI features run on Microsoft Azure.'],
+      ['nvidia', 'Azure serves them with NVIDIA GPUs.'],
+      ['tsmc', 'TSMC makes those GPUs.'],
+      ['asml', 'And only ASML can build the machines TSMC prints them with.']
     ] },
   { id: 'claude', title: 'Ask Claude a question → the glass inside ASML',
     blurb: 'Trace a prompt through cloud and chips to the mirrors that print them.',
@@ -397,6 +510,16 @@ const JOURNEYS = [
       ['ati', 'Rockets rely on specialty titanium and nickel alloys from suppliers like ATI.']
     ] }
 ];
+
+
+/* ---- resolve layers: legacy numeric indices map via OLD; MOVE re-homes nodes ---- */
+const OLD = ['you', 'apps', 'devices', 'labs', 'cloud', 'capital', 'dc', 'energy', 'systems', 'chips', 'fabs', 'equip', 'parts', 'materials', 'space', 'rocket', 'raw'];
+const MOVE = { spotify: 'social', netflix: 'social', meta: 'social', google: 'social', bytedance: 'social', perplexity: 'social', microsoft: 'work', adobe: 'work', palantir: 'work', cursor: 'work', amazon: 'shop', visa: 'money', mastercard: 'money', robinhood: 'money', waymo: 'devices', oura: 'health' };
+NODES.forEach(function (n) {
+  var k = typeof n.l === 'number' ? OLD[n.l] : n.l;
+  if (MOVE[n.id]) k = MOVE[n.id];
+  n.l = LAYERS.findIndex(function (L) { return L.id === k; });
+});
 
 return { LAYERS, NODES, JOURNEYS };
 })();

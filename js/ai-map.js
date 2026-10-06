@@ -465,7 +465,7 @@
      Semantic zoom: dots → logos → names → tickers.
      ============================================================ */
   var FM = { ready: false, zc: '' };
-  var FMC = { W: 3000, ROW: 150, BAND: 128, R: 28 };
+  var FMC = { W: 3000, ROW: 128, BAND: 108, R: 28 };
   var fmEl = $('#fullmap'), fmSvg = $('#fm-svg'), fmVp = $('#fm-vp'), fmRail = $('#fm-rail');
   var fmV = { x: 0, y: 0, k: 0.2 }, fmFly = 0, fmNodes = {};
 

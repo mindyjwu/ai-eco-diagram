@@ -29,6 +29,10 @@ const LAYERS = [
     sub: 'The software you do your job in, and the payroll systems that turn your work into a paycheck.',
     take: 'Enterprise software seats are the steadiest AI revenue, and payroll companies sit on the rails that move wages. Investors debate whether AI agents will erode per-seat pricing.',
     build: 'Vertical AI for a specific profession, payroll and benefits for new kinds of workers, and agents that finish a whole task (not just draft) are all in play.' },
+  { id: 'gig', name: 'Gig & freelance work', h: 355,
+    sub: 'Platforms that match drivers, couriers and freelancers to jobs, and the new market for training AI.',
+    take: 'Gig platforms use AI for matching, pricing and dispatch, and they are the first to feel automation, from robotaxis to AI writers. A new wave of gig work pays experts to train models.',
+    build: 'Tools for independent workers (benefits, taxes, portable reputation), vertical freelance marketplaces and expert-data marketplaces are active areas.' },
   { id: 'money', name: 'Money: banks, payments & investing', h: 150,
     sub: 'Cards, banks, brokerages, lenders and the central-bank rails underneath them.',
     take: 'Finance uses AI for fraud scoring, credit decisions, trading and customer service. Payment networks earn a small toll on every transaction, and your savings flow from here into the funds that finance AI itself.',
@@ -37,6 +41,18 @@ const LAYERS = [
     sub: 'Wearables, insurers, hospitals, telehealth and AI drug discovery.',
     take: 'Healthcare AI is where hype and real value are both highest: note-taking assistants, diagnostics and drug discovery are real, but regulation, privacy and reimbursement slow adoption.',
     build: 'Clinical workflow tools, prior authorisation, imaging and drug-discovery platforms are where small teams find traction. Domain expertise and trust matter more than raw model quality.' },
+  { id: 'food', name: 'Food, groceries & restaurants', h: 65,
+    sub: 'Supermarkets, restaurant chains and the software that runs them.',
+    take: 'Food retail runs on thin margins, so AI forecasting, ordering and automation matter. Drive-through voice, kitchen robots and personalised offers are the visible parts.',
+    build: 'Restaurant software, food-waste reduction, demand forecasting and kitchen automation are accessible entry points for small teams.' },
+  { id: 'travel', name: 'Travel & stays', h: 190,
+    sub: 'Airlines, hotels, booking sites and the systems behind them.',
+    take: 'Travel is big discretionary spend and a prime AI use case: search, pricing and trip-planning agents. Airlines also depend on a very small group of planemakers and engine makers.',
+    build: 'Agentic trip planning, disruption handling and personalised itineraries are active, but distribution is controlled by a few giants, so partnerships matter.' },
+  { id: 'edu', name: 'Education & learning', h: 310,
+    sub: 'Schools, courses, tutoring apps and learning software.',
+    take: 'AI is both the biggest threat and biggest opportunity in education: it cheats homework and it tutors one-to-one. Some businesses have been hurt badly, while others are growing.',
+    build: 'AI tutors with real pedagogy, teacher tools and assessment that resists cheating are the areas to watch. Trust from schools matters as much as the technology.' },
   { id: 'devices', name: 'Devices, cars & the connected home', h: 50,
     sub: 'Phones, cars, speakers, beds and TVs: the hardware that puts AI in your hands.',
     take: 'Hardware is the glass between you and AI. Margins are thinner than software but switching costs are real. Every device pulls on chip designers and foundries.',
@@ -61,6 +77,10 @@ const LAYERS = [
     sub: 'Power plants, turbines, transformers and fuel.',
     take: 'Electricity is the binding constraint. Grid connections take years, gas turbines and transformers are backordered, and nuclear restarts are back on the table.',
     build: 'Anything that adds power faster (grid software, flexible load, storage, permitting automation, small reactors) has a hungry buyer.' },
+  { id: 'agri', name: 'Food supply chain & farming', h: 85,
+    sub: 'Distributors, processors, grain traders, farm machinery, seeds and fertiliser.',
+    take: 'Behind every meal is a chain from farm to warehouse to restaurant. It is concentrated: a few traders, a few machinery makers, a few fertiliser producers. AI is entering through precision farming and logistics.',
+    build: 'Precision agriculture, crop breeding, cold-chain logistics and fertiliser efficiency are real markets with long sales cycles and loyal buyers.' },
   { id: 'systems', name: 'Servers & networking', h: 280,
     sub: 'The companies that assemble chips into racks and wire racks into clusters.',
     take: 'Server makers earn thin margins on huge volume. Networking and optics are the faster-growing part, because training clusters are only as fast as their wiring.',
@@ -139,8 +159,8 @@ N('essilor', 2, 'EssilorLuxottica', { d: 'essilorluxottica.com', q: 'EL.PA', w: 
 N('xiaomi', 2, 'Xiaomi', { d: 'mi.com', q: '1810.HK', w: 'Phones, EVs and a huge IoT ecosystem; started designing its own chips in 2025.', y: 'Shows how fast a hardware ecosystem can expand into EVs and chips.', up: ['qualcomm', 'tsmc'] }),
 
 /* ---------------- 3 · LABS ---------------- */
-N('openai', 3, 'OpenAI', { d: 'openai.com', s: 'Private', w: 'ChatGPT, GPT models, Sora, Codex; sponsor of the Stargate programme.', y: 'Largest consumer AI app. Has committed to well over $1 trillion of multi-year compute from Microsoft, Oracle, CoreWeave, NVIDIA, AMD, Broadcom and AWS (reported).', p: 'Private valuations in the hundreds of billions, funded by large rounds. Revenue is growing very fast, and so are losses.', o: 'Access as an investor is mostly via partners (Microsoft, SoftBank, AMD, Oracle). As a builder, think about tools around the API.', up: ['azure', 'oracle', 'coreweave', 'stargate', 'nvidia', 'amd', 'broadcom', 'aws', 'scale_ai', 'softbank', 'vc'] }),
-N('anthropic', 3, 'Anthropic', { d: 'anthropic.com', s: 'Private', w: 'Claude models and Claude Code; safety-focused AI lab.', y: 'Multi-cloud, multi-chip by design: Google TPUs, AWS Trainium and NVIDIA GPUs.', p: 'Revenue run-rate grew very quickly through 2025, with large funding from Amazon, Google, Microsoft/NVIDIA and others.', o: 'Private. Exposure is indirect via Amazon and Alphabet. Strong demand for engineers, researchers and applied/enterprise roles.', up: ['aws', 'aws_trainium', 'gcloud', 'google_tpu', 'azure', 'nvidia', 'vc'] }),
+N('openai', 3, 'OpenAI', { d: 'openai.com', s: 'Private', w: 'ChatGPT, GPT models, Sora, Codex; sponsor of the Stargate programme.', y: 'Largest consumer AI app. Has committed to well over $1 trillion of multi-year compute from Microsoft, Oracle, CoreWeave, NVIDIA, AMD, Broadcom and AWS (reported).', p: 'Private valuations in the hundreds of billions, funded by large rounds. Revenue is growing very fast, and so are losses.', o: 'Access as an investor is mostly via partners (Microsoft, SoftBank, AMD, Oracle). As a builder, think about tools around the API.', up: ['azure', 'oracle', 'coreweave', 'stargate', 'nvidia', 'amd', 'broadcom', 'aws', 'scale_ai', 'mercor', 'surge_ai', 'softbank', 'vc'] }),
+N('anthropic', 3, 'Anthropic', { d: 'anthropic.com', s: 'Private', w: 'Claude models and Claude Code; safety-focused AI lab.', y: 'Multi-cloud, multi-chip by design: Google TPUs, AWS Trainium and NVIDIA GPUs.', p: 'Revenue run-rate grew very quickly through 2025, with large funding from Amazon, Google, Microsoft/NVIDIA and others.', o: 'Private. Exposure is indirect via Amazon and Alphabet. Strong demand for engineers, researchers and applied/enterprise roles.', up: ['aws', 'aws_trainium', 'gcloud', 'google_tpu', 'azure', 'nvidia', 'surge_ai', 'vc'] }),
 N('deepmind', 3, 'Google DeepMind', { d: 'deepmind.google', s: 'Alphabet', w: 'Gemini models, Veo video, AlphaFold; Alphabet\'s research and model arm.', y: 'The lab with its own chips and cloud, so it controls cost directly.', up: ['gcloud', 'google_tpu'] }),
 N('meta_ai', 3, 'Meta AI (Llama)', { d: 'ai.meta.com', s: 'Meta', w: 'Llama open-weight models and Meta Superintelligence Labs.', y: 'Big open-weight bet, financed by the ad business.', up: ['meta_infra', 'nvidia', 'scale_ai'] }),
 N('xai', 3, 'xAI', { d: 'x.ai', s: 'Private', w: 'Grok models and the Colossus supercomputer in Memphis.', y: 'Showed how fast a giant GPU cluster can be stood up, and that on-site power is the real bottleneck. Reportedly combined with SpaceX in 2026; verify the current structure.', up: ['nvidia', 'supermicro', 'dell', 'tesla_energy', 'apollo'] }),
@@ -359,7 +379,7 @@ N('you_home', 'you', 'Smart home & IoT', { e: '🏠', w: 'Speakers, doorbells, t
 N('you_furniture', 'you', 'Furniture, beds & appliances', { e: '🛋️', w: 'Smart mattresses, connected fridges, lamps with chips and sensors.', y: 'Even a lamp now has a Wi-Fi chip. Furniture makers are becoming hardware companies.', up: ['ikea', 'eightsleep', 'lg', 'samsung'] }),
 N('you_car', 'you', 'Cars & robotaxis', { e: '🚗', w: 'Driver-assist, self-driving rides and in-car assistants.', y: 'Cars are now rolling computers: big vision models, cameras, radar and constant connectivity.', up: ['tesla', 'waymo', 'qualcomm', 'nvidia'] }),
 N('you_connect', 'you', 'Internet anywhere', { e: '📡', w: 'Satellite broadband on planes, ships and farms, and satellite messaging on phones.', y: 'Space-based connectivity is now a consumer product, and could connect AI to places fibre never will.', up: ['starlink', 'ast', 'globalstar'] }),
-N('you_learn', 'you', 'Learning & creating', { e: '🎨', w: 'Tutoring, writing, music, images and video made with AI.', y: 'Creative tools drive heavy, spiky compute use, especially image and video generation.', up: ['openai', 'google', 'adobe', 'anthropic'] }),
+N('you_learn', 'you', 'Creating: writing, music, images & video', { e: '🎨', w: 'Writing, music, images and video made with AI.', y: 'Creative tools drive heavy, spiky compute use, especially image and video generation.', up: ['openai', 'google', 'adobe', 'anthropic'] }),
 
 /* ---- SHOP ---- */
 N('walmart', 'shop', 'Walmart', { d: 'walmart.com', q: 'WMT', w: 'Largest retailer; uses AI for search, inventory and supply-chain forecasting, and announced in-chat shopping with OpenAI in 2025.', y: 'Shows how a store giant becomes a tech buyer.', p: 'Steady growth with a fast-growing e-commerce and ads business.', up: ['azure', 'gcloud', 'openai', 'visa', 'mastercard'] }),
@@ -368,8 +388,8 @@ N('temu', 'shop', 'Temu (PDD Holdings)', { d: 'temu.com', q: 'PDD', w: 'Ultra-lo
 N('costco', 'shop', 'Costco', { d: 'costco.com', q: 'COST', w: 'Membership warehouse club; a steady, less AI-exposed counterweight.', y: 'Useful contrast: great retail with a modest AI footprint.', up: ['visa'] }),
 N('ups', 'shop', 'UPS', { d: 'ups.com', q: 'UPS', w: 'Parcel delivery; AI route optimisation (ORION) and automated sorting hubs.', y: 'The physical half of e-commerce.' }),
 N('fedex', 'shop', 'FedEx', { d: 'fedex.com', q: 'FDX', w: 'Parcel and freight delivery; AI-driven logistics and network planning.', y: 'Another backbone of home delivery.' }),
-N('doordash', 'shop', 'DoorDash', { d: 'doordash.com', q: 'DASH', w: 'Food and grocery delivery; ML for dispatch and recommendations.', y: 'Real-time logistics is one of the hardest ML problems in consumer tech.', up: ['aws'] }),
-N('uber', 'shop', 'Uber', { d: 'uber.com', q: 'UBER', w: 'Rides and delivery; partners with Waymo and others for robotaxis.', y: 'Aggregator that could benefit or be disrupted as autonomy arrives.', up: ['oracle', 'gcloud', 'waymo'] }),
+N('doordash', 'shop', 'DoorDash', { d: 'doordash.com', q: 'DASH', w: 'Food and grocery delivery; ML for dispatch and recommendations.', y: 'Real-time logistics is one of the hardest ML problems in consumer tech.', up: ['aws', 'recsys'] }),
+N('uber', 'shop', 'Uber', { d: 'uber.com', q: 'UBER', w: 'Rides and delivery; partners with Waymo and others for robotaxis.', y: 'Aggregator that could benefit or be disrupted as autonomy arrives.', up: ['oracle', 'gcloud', 'waymo', 'recsys'] }),
 
 /* ---- SOCIAL ---- */
 N('youtube', 'social', 'YouTube', { d: 'youtube.com', s: 'Alphabet', w: 'World\'s largest video platform, with shorts, music, TV apps and a huge creator economy.', y: 'The company has said recommendations drive a large share of what people watch (it has cited roughly 70%). That engine is a major TPU and GPU customer.', p: 'Ads plus subscriptions are one of Alphabet\'s largest revenue lines.', o: 'Creator tools, analytics and AI video are huge adjacent markets.', up: ['google_tpu', 'gcloud', 'deepmind'] }),
@@ -423,11 +443,114 @@ N('isomorphic', 'health', 'Isomorphic Labs', { d: 'isomorphiclabs.com', s: 'Alph
 N('doximity', 'health', 'Doximity', { d: 'doximity.com', q: 'DOCS', w: 'Professional network for US doctors with AI note and referral tools.', y: 'Where physicians already spend time.', up: ['aws'] }),
 
 /* ---- concept hub: the AI engines behind commerce, feeds, payments ---- */
-N('recsys', 'labs', 'Recommendation, ranking & risk models', { e: '🎯', s: 'Technology, not a company', w: 'The models that decide which product you see, which video plays next, which ad shows, and whether a payment looks like fraud.', y: 'The oldest and most profitable AI workload. It is the engine behind e-commerce, feeds, ads and card security, and it runs on GPUs, TPUs and custom chips around the clock.', o: 'Anywhere ranking or scoring creates money (shopping, ads, lending, hiring) is a market. Cheaper inference makes it bigger.', up: ['nvidia', 'google_tpu', 'aws_trainium', 'meta_infra', 'amd'] })
+N('recsys', 'labs', 'Recommendation, ranking & risk models', { e: '🎯', s: 'Technology, not a company', w: 'The models that decide which product you see, which video plays next, which ad shows, and whether a payment looks like fraud.', y: 'The oldest and most profitable AI workload. It is the engine behind e-commerce, feeds, ads and card security, and it runs on GPUs, TPUs and custom chips around the clock.', o: 'Anywhere ranking or scoring creates money (shopping, ads, lending, hiring) is a market. Cheaper inference makes it bigger.', up: ['nvidia', 'google_tpu', 'aws_trainium', 'meta_infra', 'amd'] }),
+
+/* ================= v3: food, travel, education, gig work ================= */
+
+/* ---- YOU ---- */
+N('you_food', 'you', 'Eating: groceries, restaurants & delivery', { e: '🍽️', w: 'The supermarket shop, the coffee, the takeaway and the restaurant booking.', y: 'Food is one of the biggest household budgets. AI now touches ordering, pricing, forecasting and farming, and the chain behind your plate runs from restaurants all the way to fertiliser mines.', up: ['kroger', 'starbucks', 'mcdonalds', 'chipotle', 'dominos', 'yum', 'toast', 'doordash', 'instacart', 'walmart', 'costco'] }),
+N('you_travel', 'you', 'Travel & stays', { e: '✈️', w: 'Flights, hotels, rentals and trip planning.', y: 'Travel is a huge discretionary spend and an early AI use case: search, pricing, personalisation and trip-planning agents.', up: ['booking', 'airbnb', 'expedia', 'marriott', 'hilton', 'delta', 'united', 'carnival', 'google', 'uber'] }),
+N('you_edu', 'you', 'Learning: school, courses & tutoring', { e: '📚', w: 'Classes, language apps, online courses, homework help and AI tutors.', y: 'Students were among the earliest mass users of chatbots, which is rewriting education and hurting some homework-help businesses.', up: ['duolingo', 'coursera', 'khan', 'chegg', 'pearson', 'instructure', 'grammarly', 'openai', 'anthropic', 'google'] }),
+N('you_gig', 'you', 'Gig & freelance work', { e: '🧑‍💻', w: 'Driving, delivering, freelancing, and increasingly, being paid to train AI.', y: 'Gig platforms match workers to jobs with AI. At the same time, labs now pay thousands of experts to write, grade and correct model answers, which is a new kind of gig work.', up: ['uber', 'doordash', 'instacart', 'lyft', 'upwork', 'fiverr', 'mercor', 'surge_ai', 'scale_ai'] }),
+
+/* ---- GIG ---- */
+N('lyft', 'gig', 'Lyft', { d: 'lyft.com', q: 'LYFT', w: 'Ride-hailing platform; partners on autonomous vehicles.', y: 'Exposed to the robotaxi shift, and trying to be a marketplace for it.', up: ['aws', 'waymo', 'recsys'] }),
+N('instacart', 'gig', 'Instacart (Maplebear)', { d: 'instacart.com', q: 'CART', w: 'Grocery delivery platform that uses personal shoppers; AI for substitutions and recommendations.', y: 'Brings food and gig work together. Its former CEO now leads applications at OpenAI.', up: ['aws', 'openai', 'recsys'] }),
+N('upwork', 'gig', 'Upwork', { d: 'upwork.com', q: 'UPWK', w: 'Freelance marketplace for knowledge work.', y: 'A live test of whether AI replaces freelancers or makes them more productive.', p: 'Growth has been modest as AI changes which tasks get outsourced.', up: ['aws', 'paypal', 'recsys'] }),
+N('fiverr', 'gig', 'Fiverr', { d: 'fiverr.com', q: 'FVRR', w: 'Marketplace for small creative and digital services.', y: 'Directly exposed to generative AI for writing, design and video.', up: ['aws', 'paypal', 'recsys'] }),
+
+/* ---- FOOD ---- */
+N('kroger', 'food', 'Kroger', { d: 'kroger.com', q: 'KR', w: 'Largest US supermarket chain by sales; uses AI for demand forecasting and personalised offers.', y: 'Groceries are thin-margin, so small AI efficiencies matter.', up: ['azure', 'tyson', 'cargill'] }),
+N('starbucks', 'food', 'Starbucks', { d: 'starbucks.com', q: 'SBUX', w: 'Global coffee chain; its Deep Brew AI drives personalisation and inventory.', y: 'A consumer brand run on a loyalty app, which is effectively a data business.', up: ['azure'] }),
+N('mcdonalds', 'food', 'McDonald\'s', { d: 'mcdonalds.com', q: 'MCD', w: 'World\'s largest restaurant chain; AI-assisted ordering and kitchen systems with Google Cloud.', y: 'Scale means tiny efficiency gains turn into huge savings.', up: ['gcloud', 'tyson', 'cargill'] }),
+N('chipotle', 'food', 'Chipotle', { d: 'chipotle.com', q: 'CMG', w: 'Fast-casual chain that tests kitchen automation and AI for hiring and ordering.', y: 'Shows how a restaurant uses robotics and AI to cut labour cost.' }),
+N('dominos', 'food', 'Domino\'s', { d: 'dominos.com', q: 'DPZ', w: 'Pizza chain with a heavy digital-ordering and logistics focus.', y: 'A restaurant that already behaves like a tech company.', up: ['tyson'] }),
+N('yum', 'food', 'Yum! Brands (KFC, Taco Bell)', { d: 'yum.com', q: 'YUM', w: 'Parent of KFC, Taco Bell and Pizza Hut; announced AI partnerships with NVIDIA.', y: 'Drive-through voice AI is a visible, fast-moving use case.', up: ['nvidia', 'tyson'] }),
+N('toast', 'food', 'Toast', { d: 'toasttab.com', q: 'TOST', w: 'Point-of-sale and software platform for restaurants.', y: 'The operating system for independent restaurants, adding AI features.', up: ['aws'] }),
+
+/* ---- TRAVEL ---- */
+N('booking', 'travel', 'Booking Holdings', { d: 'booking.com', q: 'BKNG', w: 'Booking.com, Priceline, Kayak and OpenTable, with an AI trip planner.', y: 'The biggest online travel agency, now competing with AI assistants that plan trips.', up: ['openai', 'amadeus'] }),
+N('airbnb', 'travel', 'Airbnb', { d: 'airbnb.com', q: 'ABNB', w: 'Short-term rental marketplace; hosts are a kind of gig worker.', y: 'Has used third-party models, including reportedly Alibaba\'s Qwen, for customer service.', up: ['aws', 'alibaba'] }),
+N('expedia', 'travel', 'Expedia Group', { d: 'expedia.com', q: 'EXPE', w: 'Online travel agency group (Expedia, Hotels.com, Vrbo).', y: 'Competes with Booking and with AI agents that do the planning.', up: ['openai', 'aws', 'amadeus'] }),
+N('marriott', 'travel', 'Marriott', { d: 'marriott.com', q: 'MAR', w: 'World\'s largest hotel company.', y: 'Uses AI for revenue management and guest service.' }),
+N('hilton', 'travel', 'Hilton', { d: 'hilton.com', q: 'HLT', w: 'Global hotel group.', y: 'Heavy loyalty-data business.' }),
+N('delta', 'travel', 'Delta Air Lines', { d: 'delta.com', q: 'DAL', w: 'Major US airline; uses AI for pricing and operations.', y: 'Airlines depend on planemakers, engine makers and the exotic alloys inside them.', up: ['boeing', 'airbus', 'ge_aerospace', 'rtx', 'amadeus'] }),
+N('united', 'travel', 'United Airlines', { d: 'united.com', q: 'UAL', w: 'Major US airline; rolling out Starlink Wi-Fi across its fleet.', y: 'A direct customer of satellite internet and of the aerospace chain.', up: ['boeing', 'airbus', 'ge_aerospace', 'starlink', 'amadeus'] }),
+N('carnival', 'travel', 'Carnival', { d: 'carnival.com', q: 'CCL', w: 'World\'s largest cruise company; cruise lines rely on satellite internet.', y: 'Ships are floating customers for Starlink.', up: ['starlink'] }),
+N('amadeus', 'travel', 'Amadeus', { d: 'amadeus.com', q: 'AMS.MC', w: 'Booking and airline IT backbone that powers much of global travel distribution.', y: 'Plumbing most travellers never see.', up: ['azure'] }),
+
+/* ---- EDUCATION ---- */
+N('duolingo', 'edu', 'Duolingo', { d: 'duolingo.com', q: 'DUOL', w: 'Language-learning app with AI tutors and conversation practice.', y: 'Leans on AI heavily, and its stock swings with debates about AI replacing learning.', up: ['openai', 'aws'] }),
+N('coursera', 'edu', 'Coursera', { d: 'coursera.org', q: 'COUR', w: 'Online courses and degrees from universities and companies.', y: 'Competing with free AI tutors by leaning on credentials.' }),
+N('khan', 'edu', 'Khan Academy', { d: 'khanacademy.org', s: 'Non-profit', w: 'Free lessons and the Khanmigo AI tutor, built with OpenAI.', y: 'The clearest example of an AI tutor designed to guide rather than give answers.', up: ['openai', 'azure'] }),
+N('chegg', 'edu', 'Chegg', { d: 'chegg.com', q: 'CHGG', w: 'Homework-help subscription business.', y: 'A cautionary tale: its traffic and subscribers fell as students turned to chatbots.', p: 'Shares fell dramatically after generative AI arrived, with major layoffs.' }),
+N('pearson', 'edu', 'Pearson', { d: 'pearson.com', q: 'PSO', w: 'Education publisher and assessment company, adding AI study tools.', y: 'Incumbent trying to turn content into AI products.', up: ['aws', 'gcloud'] }),
+N('instructure', 'edu', 'Instructure (Canvas)', { d: 'instructure.com', s: 'Private (KKR)', w: 'Canvas learning-management system used by many schools and universities; partnered with OpenAI.', y: 'The software where assignments live, so a key gateway for AI in classrooms.', up: ['openai', 'aws'] }),
+N('grammarly', 'edu', 'Grammarly (Superhuman)', { d: 'grammarly.com', s: 'Private', w: 'Writing assistant with AI features used by students and professionals.', y: 'Writing help was one of the first mainstream AI products.' }),
+
+/* ---- AGRI ---- */
+N('sysco', 'agri', 'Sysco', { d: 'sysco.com', q: 'SYY', w: 'Largest US foodservice distributor, supplying restaurants and hospitals.', y: 'The warehouse-and-truck layer between farms and restaurants.', up: ['tyson', 'cargill', 'adm'] }),
+N('usfoods', 'agri', 'US Foods', { d: 'usfoods.com', q: 'USFD', w: 'Major US foodservice distributor.', y: 'Another key link from producers to restaurants.', up: ['tyson', 'cargill', 'adm'] }),
+N('tyson', 'agri', 'Tyson Foods', { d: 'tysonfoods.com', q: 'TSN', w: 'One of the largest US meat and poultry processors.', y: 'Depends on grain, water and farm machinery.', up: ['adm', 'cargill', 'water'] }),
+N('adm', 'agri', 'Archer-Daniels-Midland (ADM)', { d: 'adm.com', q: 'ADM', w: 'Global grain trader and processor.', y: 'Moves and processes the crops that become feed, oil and sweeteners.', up: ['deere', 'corteva'] }),
+N('cargill', 'agri', 'Cargill', { d: 'cargill.com', s: 'Private (family-owned)', w: 'One of the world\'s largest private companies, trading and processing food and farm commodities.', y: 'Hidden giant of the food supply chain.', up: ['deere', 'corteva'] }),
+N('deere', 'agri', 'Deere & Company', { d: 'deere.com', q: 'DE', w: 'Tractors and combines with computer-vision spraying and autonomy.', y: 'A tractor is now a robot, and precision farming runs on NVIDIA chips and satellite data.', p: 'Farm equipment is cyclical; the AI story is about precision and labour savings.', o: 'Ag-tech is a real frontier: sensors, imagery and autonomy cut chemical use and labour.', up: ['nvidia', 'planet'], c: 1 }),
+N('corteva', 'agri', 'Corteva', { d: 'corteva.com', q: 'CTVA', w: 'Seeds and crop-protection chemicals.', y: 'Genetics decides yield, and AI is speeding up crop breeding.', up: ['water'] }),
+N('nutrien', 'agri', 'Nutrien', { d: 'nutrien.com', q: 'NTR', w: 'World\'s largest potash producer, plus fertiliser retail.', y: 'No fertiliser, no crop. Potash comes from a handful of countries.', up: ['potash_fertilizer'], c: 1 }),
+N('mosaic', 'agri', 'Mosaic', { d: 'mosaicco.com', q: 'MOS', w: 'Phosphate and potash fertiliser producer.', y: 'Phosphate is another scarce farm input.', up: ['potash_fertilizer'] }),
+N('cf_industries', 'agri', 'CF Industries', { d: 'cfindustries.com', q: 'CF', w: 'Nitrogen fertiliser producer that uses natural gas as feedstock.', y: 'Links natural gas prices directly to food prices.', up: ['potash_fertilizer'] }),
+
+/* ---- AI-training gig work (labs layer) ---- */
+N('mercor', 'labs', 'Mercor', { d: 'mercor.com', s: 'Private', w: 'Marketplace that pays experts (doctors, lawyers, engineers) to train and evaluate AI models.', y: 'A fast-growing example of AI creating new paid work: expert contractors teaching models.', p: 'Reported valuation around $10B in late 2025.', o: 'If you have professional expertise, this is paid work today, and a sign of where demand for human knowledge is going.', up: ['aws'] }),
+N('surge_ai', 'labs', 'Surge AI', { d: 'surgehq.ai', s: 'Private', w: 'High-quality human data and evaluation for labs, largely bootstrapped.', y: 'Part of the quiet industry of humans who make models better.', up: [] }),
+
+/* ---- raw: fertiliser ---- */
+N('potash_fertilizer', 'raw', 'Potash, phosphate & nitrogen', { e: '🌱', s: 'Commodities', w: 'The three macronutrients behind modern farming, mined or made from natural gas.', y: 'A small number of countries and companies supply most of the world\'s fertiliser, so a supply shock raises food prices everywhere.' }),
+
+/* ---- aerospace suppliers used by airlines (rocket layer) ---- */
+N('ge_aerospace', 'rocket', 'GE Aerospace', { d: 'geaerospace.com', q: 'GE', w: 'Jet engines (alone and via CFM with Safran) for most commercial airliners.', y: 'One of two or three companies that can build a modern airliner engine.', up: ['ati', 'howmet'], c: 1 }),
+N('rtx', 'rocket', 'RTX (Pratt & Whitney, Collins)', { d: 'rtx.com', q: 'RTX', w: 'Pratt & Whitney engines, Collins avionics and Raytheon defence systems.', y: 'Another of the few makers of jet engines and cockpit electronics.', up: ['ati', 'howmet'] })
 ];
 
 /* ---------------- guided journeys ---------------- */
 const JOURNEYS = [
+  { id: 'food', title: 'Your burger → the chip in a tractor',
+    blurb: 'Follow a meal from the drive-through back to the farm, and to the GPUs steering the tractor.',
+    steps: [
+      ['you_food', 'You order a burger.'],
+      ['mcdonalds', 'McDonald\'s runs ordering and kitchen systems with AI, and buys meat and ingredients at huge scale.'],
+      ['tyson', 'Meat comes from processors like Tyson.'],
+      ['adm', 'They buy feed grain from traders such as ADM.'],
+      ['deere', 'Grain comes from farms running Deere machines, now robots with computer vision.'],
+      ['nvidia', 'Those tractors run on NVIDIA chips.'],
+      ['tsmc', 'And TSMC makes the chips, so a burger depends on Taiwan.']
+    ] },
+  { id: 'travel', title: 'Your flight → the alloys inside a jet engine',
+    blurb: 'From a seat on a plane to the exotic metals in its engines.',
+    steps: [
+      ['you_travel', 'You book a flight.'],
+      ['united', 'United flies it, and is rolling out Starlink Wi-Fi.'],
+      ['ge_aerospace', 'Its engines come from one of very few makers, such as GE Aerospace.'],
+      ['ati', 'Jet engines are built from specialty titanium and nickel alloys made by suppliers like ATI.']
+    ] },
+  { id: 'gig', title: 'Your gig shift → the robotaxi that might replace it',
+    blurb: 'A driver\'s app, a competitor with no driver, and the chips beneath both.',
+    steps: [
+      ['you_gig', 'You pick up a driving shift.'],
+      ['uber', 'Uber\'s app matches you to riders with AI.'],
+      ['waymo', 'Uber also partners with Waymo, whose cars have no driver.'],
+      ['google_tpu', 'Waymo\'s models are trained on Google\'s TPU chips.'],
+      ['tsmc', 'TSMC makes those chips.']
+    ] },
+  { id: 'edu', title: 'Your language lesson → NVIDIA',
+    blurb: 'A Duolingo streak and the GPUs behind the AI tutor.',
+    steps: [
+      ['you_edu', 'You practise a language with an app.'],
+      ['duolingo', 'Duolingo\'s AI tutor runs on large models.'],
+      ['openai', 'It uses models from OpenAI.'],
+      ['nvidia', 'OpenAI trains and serves them on NVIDIA GPUs.'],
+      ['tsmc', 'Made by TSMC.']
+    ] },
   { id: 'amazon', title: 'Your Amazon order → a quartz mine',
     blurb: 'Follow a single purchase from a recommendation to the sand inside the chip that made it.',
     steps: [
@@ -514,7 +637,7 @@ const JOURNEYS = [
 
 /* ---- resolve layers: legacy numeric indices map via OLD; MOVE re-homes nodes ---- */
 const OLD = ['you', 'apps', 'devices', 'labs', 'cloud', 'capital', 'dc', 'energy', 'systems', 'chips', 'fabs', 'equip', 'parts', 'materials', 'space', 'rocket', 'raw'];
-const MOVE = { spotify: 'social', netflix: 'social', meta: 'social', google: 'social', bytedance: 'social', perplexity: 'social', microsoft: 'work', adobe: 'work', palantir: 'work', cursor: 'work', amazon: 'shop', visa: 'money', mastercard: 'money', robinhood: 'money', waymo: 'devices', oura: 'health' };
+const MOVE = { uber: 'gig', doordash: 'gig', spotify: 'social', netflix: 'social', meta: 'social', google: 'social', bytedance: 'social', perplexity: 'social', microsoft: 'work', adobe: 'work', palantir: 'work', cursor: 'work', amazon: 'shop', visa: 'money', mastercard: 'money', robinhood: 'money', waymo: 'devices', oura: 'health' };
 NODES.forEach(function (n) {
   var k = typeof n.l === 'number' ? OLD[n.l] : n.l;
   if (MOVE[n.id]) k = MOVE[n.id];

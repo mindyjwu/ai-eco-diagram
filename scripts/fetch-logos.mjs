@@ -40,6 +40,46 @@ const ALT = {
   'applovin.com': ['axon.ai'],
 };
 
+/* Last resort for a few stubborn companies: the official logo from Wikidata / Wikimedia Commons.
+   Only used for the names listed here, so it can't match the wrong company for anyone else. */
+const WIKI = {
+  'smics.com': 'Semiconductor Manufacturing International Corporation',
+  'coorstek.com': 'CoorsTek',
+  'unimicron.com': 'Unimicron',
+  'ulalaunch.com': 'United Launch Alliance',
+};
+
+async function grabWiki(d) {
+  const name = WIKI[d];
+  if (!name) return null;
+  const get = async (url, json = true) => {
+    const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(15000), headers: { 'user-agent': 'ai-eco-diagram logo fetch (https://github.com/mindyjwu/ai-eco-diagram)' } });
+    if (!res.ok) throw new Error(String(res.status));
+    return json ? res.json() : res;
+  };
+  try {
+    const found = await get(`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(name)}&language=en&type=item&limit=3&format=json&origin=*`);
+    const hit = (found.search || [])[0];
+    if (!hit) return null;
+    for (const prop of ['P154', 'P8972']) { // logo image, small logo or icon
+      const claims = await get(`https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=${hit.id}&property=${prop}&format=json&origin=*`);
+      const file = claims.claims?.[prop]?.[0]?.mainsnak?.datavalue?.value;
+      if (!file) continue;
+      const res = await get(`https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=256`, false);
+      const type = (res.headers.get('content-type') || '').toLowerCase();
+      const e = ext(type);
+      if (!e || e === 'svg') continue;
+      const buf = Buffer.from(await res.arrayBuffer());
+      if (!good('wiki', buf, e)) continue;
+      const out = `${d}.${e}`;
+      fs.writeFileSync(path.join(outDir, out), buf);
+      console.log(`\n  ${d}: used Wikidata ${hit.id} "${hit.label}" (${hit.description || 'no description'}) -> ${file}`);
+      return out;
+    }
+  } catch { /* give up quietly */ }
+  return null;
+}
+
 const sources = (d) => [
   ['google', `https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=128`],
   ['gstatic', `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${d}&size=128`],
@@ -81,7 +121,7 @@ async function grab(d) {
       } catch { /* try the next source */ }
     }
   }
-  return null;
+  return await grabWiki(d);
 }
 
 let ok = 0, skipped = 0;

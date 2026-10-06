@@ -461,14 +461,31 @@
   });
 
   /* ============================================================
-     FULL MAP — one zoomable canvas with every node and every link.
-     Semantic zoom: dots → logos → names → tickers.
+     FULL MAP — a three-level zoomable view.
+       overview  zones → layers → each layer's 8 best-connected logos,
+                 plus arcs showing how many links run between layers
+       layer     zoom in and a row spreads out to every company
+       company   click one to reveal only its own chains
      ============================================================ */
-  var FM = { ready: false, zc: '' };
-  var FMC = { W: 3000, ROW: 128, BAND: 108, R: 28 };
+  var FM = { ready: false, zc: '', compact: null, active: false };
+  var FMC = { W: 2800, ARC: 560, ROW: 128, BAND: 108, R: 28, ZGAP: 84, REPS: 8 };
+  var ZONES = [
+    { name: 'You: what you spend, consume & earn', from: 'you', to: 'edu', h: 18 },
+    { name: 'AI products & the money behind them', from: 'devices', to: 'capital', h: 262 },
+    { name: 'Physical buildout: buildings, power & food', from: 'dc', to: 'agri', h: 75 },
+    { name: 'The chip supply chain', from: 'systems', to: 'materials', h: 280 },
+    { name: 'Frontier & Earth', from: 'space', to: 'raw', h: 120 }
+  ];
+  var SHORT = { you: 'You', shop: 'Shopping & delivery', social: 'Social, video & search', work: 'Work & payroll', gig: 'Gig & freelance', money: 'Money & payments', health: 'Health & care', food: 'Food & restaurants', travel: 'Travel & stays', edu: 'Education', devices: 'Devices, cars & home', labs: 'AI labs', cloud: 'Cloud & compute', capital: 'Capital & financing', dc: 'Data centres', energy: 'Energy & grid', agri: 'Farming & food supply', systems: 'Servers & networking', chips: 'Chip designers', fabs: 'Fabs & memory', equip: 'Chip equipment', parts: 'Tiny parts', materials: 'Materials', space: 'Space', rocket: 'Aerospace & rockets', raw: 'Raw earth' };
   var fmEl = $('#fullmap'), fmSvg = $('#fm-svg'), fmVp = $('#fm-vp'), fmRail = $('#fm-rail');
-  var fmV = { x: 0, y: 0, k: 0.2 }, fmFly = 0, fmNodes = {};
+  var fmV = { x: 0, y: 0, k: 0.2 }, fmFly = 0, fmNodes = {}, fmZoneOf = [], fmCY = [];
 
+  function fmGeometry() {
+    var idx = function (id) { return LAYERS.findIndex(function (L) { return L.id === id; }); };
+    ZONES.forEach(function (z, zi) { z.a = idx(z.from); z.b = idx(z.to); for (var i = z.a; i <= z.b; i++) fmZoneOf[i] = zi; });
+    LAYERS.forEach(function (L, i) { fmCY[i] = FMC.ZGAP + i * FMC.ROW + fmZoneOf[i] * FMC.ZGAP + FMC.ROW / 2; });
+    FM.H = fmCY[LAYERS.length - 1] + FMC.ROW / 2 + 24;
+  }
   function fmPad() {
     var open = panel.classList.contains('open');
     var w = fmEl.clientWidth, h = fmEl.clientHeight;
@@ -477,17 +494,37 @@
   function fmSet(x, y, k) {
     fmV.x = x; fmV.y = y; fmV.k = k;
     fmVp.setAttribute('transform', 'translate(' + x + ',' + y + ') scale(' + k + ')');
-    var c = k < 0.3 ? 'z0' : k < 0.9 ? 'z1' : k < 1.5 ? 'z2' : 'z3';
-    if (c !== FM.zc) { FM.zc = c; fmSvg.classList.remove('z0', 'z1', 'z2', 'z3'); fmSvg.classList.add(c); }
+    var c = k < 0.3 ? 'z0' : k < 0.5 ? 'z1' : k < 1.2 ? 'z2' : 'z3';
+    if (c !== FM.zc) {
+      FM.zc = c; fmSvg.classList.remove('z0', 'z1', 'z2', 'z3'); fmSvg.classList.add(c);
+      if (FM.ready) fmPlace(c === 'z0' && !FM.active);
+    }
     fmRailUpdate();
   }
+  /* overview: representative logos sit in a compact strip; everything else folds away */
+  function fmPlace(compact) {
+    if (FM.compact === compact) return;
+    FM.compact = compact;
+    NODES.forEach(function (n) {
+      var g = fmNodes[n.id];
+      g.style.transform = 'translate(' + (compact ? n.ox : n.fx) + 'px,' + n.fy + 'px)';
+      g.classList.toggle('ovhide', compact && !n.rep);
+    });
+    fmSvg.style.setProperty('--ns', compact ? 1.5 : 1);
+    fmSvg.classList.toggle('ov', compact);
+  }
   function fmRailUpdate() {
-    var h = fmEl.clientHeight, k = fmV.k;
+    if (!FM.chips) return;
+    var h = fmEl.clientHeight, k = fmV.k, right = Math.max(fmV.x - 8, mq.matches ? 50 : 8);
     FM.chips.forEach(function (c, i) {
-      var cy = fmV.y + (i * FMC.ROW + FMC.ROW / 2) * k;
-      var off = cy < -20 || cy > h + 20;
+      var cy = fmV.y + fmCY[i] * k, off = cy < -20 || cy > h + 20;
       c.style.display = off ? 'none' : '';
-      if (!off) { c.style.transform = 'translate(' + (fmV.x - 8) + 'px,' + cy + 'px) translate(-100%,-50%)'; }
+      if (!off) c.style.transform = 'translate(' + right + 'px,' + cy + 'px) translate(-100%,-50%)';
+    });
+    FM.zlabels.forEach(function (z, zi) {
+      var top = fmV.y + (fmCY[ZONES[zi].a] - FMC.ROW / 2 - FMC.ZGAP * 0.62) * k, off = top < -30 || top > h + 10;
+      z.style.display = off ? 'none' : '';
+      if (!off) z.style.transform = 'translate(' + right + 'px,' + top + 'px) translate(-100%,0)';
     });
   }
   function fmCancel() { if (fmFly) { cancelAnimationFrame(fmFly); fmFly = 0; } }
@@ -508,39 +545,25 @@
       fmFly = q < 1 ? requestAnimationFrame(step) : 0;
     })(t0);
   }
-  function fmFitBox(x0, y0, x1, y1, opt) {
-    opt = opt || {};
-    var p = fmPad(), m = opt.margin || 60;
-    var k = Math.min((p.w - p.r - 2 * m) / (x1 - x0), (p.h - p.b - 2 * m) / (y1 - y0));
-    k = Math.max(opt.kmin || FM.kmin, Math.min(opt.kmax || 2.2, k));
-    fmFlyCenter((x0 + x1) / 2, (y0 + y1) / 2, k, opt.ms);
-  }
   function fmFitAll(animate) {
-    var p = fmPad(), H = LAYERS.length * FMC.ROW, left = mq.matches ? 70 : 200;
-    var k = Math.min((p.w - left - 16) / FMC.W, (p.h - 20) / H);
+    var p = fmPad(), left = mq.matches ? 60 : 210, ww = FMC.W + FMC.ARC;
+    var k = Math.min((p.w - left - 16) / ww, (p.h - 20) / FM.H);
     FM.kfit = k; FM.kmin = k * 0.85;
-    var x = left + ((p.w - left - 16) - FMC.W * k) / 2, y = 10 + ((p.h - 20) - H * k) / 2;
-    if (animate && !reduced) {
-      fmFlyCenter((p.w / 2 - x) / k, (p.h / 2 - y) / k, k, 650);
-    } else fmSet(x, y, k);
+    var x = left + ((p.w - left - 16) - ww * k) / 2, y = 10 + ((p.h - 20) - FM.H * k) / 2;
+    if (animate && !reduced) fmFlyCenter((p.w / 2 - x) / k, (p.h / 2 - y) / k, k, 650);
+    else fmSet(x, y, k);
   }
-  function fmFlyNode(id, k) {
-    var n = by[id];
-    fmFlyCenter(n.fx, n.fy, k || 1.1);
-  }
+  function fmFlyNode(id, k) { var n = by[id]; fmFlyCenter(n.fx, n.fy, k || 1.1); }
   function fmFocus(id) {
     var n = by[id], ids = [id].concat(n.up, down[id] || []);
     var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     ids.forEach(function (i) { var m = by[i]; x0 = Math.min(x0, m.fx); x1 = Math.max(x1, m.fx); y0 = Math.min(y0, m.fy); y1 = Math.max(y1, m.fy); });
     x0 -= 90; x1 += 90; y0 -= 90; y1 += 90;
-    var p = fmPad(), k = Math.min((p.w - p.r - 80) / (x1 - x0), (p.h - p.b - 80) / (y1 - y0));
-    k = Math.max(0.75, Math.min(1.5, k));
-    fmFlyCenter(k > Math.min((p.w - p.r - 80) / (x1 - x0), (p.h - p.b - 80) / (y1 - y0)) + 1e-6 ? n.fx : (x0 + x1) / 2, k > Math.min((p.w - p.r - 80) / (x1 - x0), (p.h - p.b - 80) / (y1 - y0)) + 1e-6 ? n.fy : (y0 + y1) / 2, k);
+    var p = fmPad(), fit = Math.min((p.w - p.r - 80) / (x1 - x0), (p.h - p.b - 80) / (y1 - y0));
+    var k = Math.max(0.6, Math.min(1.5, fit)), tight = k > fit + 1e-6;
+    fmFlyCenter(tight ? n.fx : (x0 + x1) / 2, tight ? n.fy : (y0 + y1) / 2, k);
   }
-  function fmFlyLayer(i) {
-    var y = i * FMC.ROW + FMC.ROW / 2, k = Math.max(0.5, (fmPad().w - fmPad().r - 260) / FMC.W);
-    fmFlyCenter(FMC.W / 2, y, k);
-  }
+  function fmFlyLayer(i) { fmFlyCenter(FMC.W / 2, fmCY[i], 0.56); }
 
   function fmPath(a, b) {
     var R = FMC.R, d;
@@ -558,12 +581,24 @@
     for (var k in attrs) e.setAttribute(k, attrs[k]);
     return e;
   }
+  function fmBuildBg() {
+    var g = $('#fm-bg');
+    if (g.firstChild) return;
+    NODES.forEach(function (n) {
+      n.up.forEach(function (u) {
+        var p = svgEl('path', { d: fmPath(n, by[u]), 'class': 'be' });
+        p.style.setProperty('--h', LAYERS[n.l].h);
+        g.appendChild(p);
+      });
+    });
+  }
 
   function buildFM() {
-    var W = FMC.W, ROW = FMC.ROW, R = FMC.R, BAND = FMC.BAND;
+    var W = FMC.W, R = FMC.R, BAND = FMC.BAND;
+    fmGeometry();
     var rows = LAYERS.map(function () { return []; });
     NODES.forEach(function (n) { rows[n.l].push(n); });
-    function assign(r) { r.forEach(function (n, i) { n.fx = 120 + (i + 0.5) * (W - 240) / r.length; n.fy = n.l * ROW + ROW / 2; }); }
+    function assign(r) { r.forEach(function (n, i) { n.fx = 120 + (i + 0.5) * (W - 240) / r.length; n.fy = fmCY[n.l]; }); }
     rows.forEach(assign);
     function bary(n) {
       var s = 0, c = 0;
@@ -574,31 +609,51 @@
       var seq = it % 2 ? rows.slice().reverse() : rows;
       seq.forEach(function (r) { r.forEach(function (n) { n.bx = bary(n); }); r.sort(function (a, b) { return a.bx - b.bx; }); assign(r); });
     }
+    /* representatives: the best-connected nodes of each layer, laid out in a compact strip for the overview */
+    rows.forEach(function (r) {
+      var rank = r.slice().sort(function (a, b) {
+        var da = a.up.length + (down[a.id] || []).length + (a.c ? 3 : 0), db = b.up.length + (down[b.id] || []).length + (b.c ? 3 : 0);
+        return db - da;
+      });
+      rank.forEach(function (n, i) { n.rep = i < FMC.REPS; });
+      var reps = r.filter(function (n) { return n.rep; });
+      var gap = 104;
+      reps.forEach(function (n, j) { n.ox = W / 2 + (j - (reps.length - 1) / 2) * gap; });
+      r.forEach(function (n) { if (!n.rep) n.ox = W / 2; });
+    });
 
-    var gBands = svgEl('g'), gBg = svgEl('g', { 'class': 'fm-bg' }), gHi = svgEl('g', { id: 'fm-hi' }), gNodes = svgEl('g');
+    var gBands = svgEl('g'), gArcs = svgEl('g', { 'class': 'arcs' }), gBg = svgEl('g', { 'class': 'fm-bg', id: 'fm-bg' }), gHi = svgEl('g', { id: 'fm-hi' }), gNodes = svgEl('g');
     LAYERS.forEach(function (L, i) {
-      var r = svgEl('rect', { x: 0, y: i * ROW + (ROW - BAND) / 2, width: W, height: BAND, rx: 22, 'class': 'band' });
+      var r = svgEl('rect', { x: 0, y: fmCY[i] - BAND / 2, width: W, height: BAND, rx: 22, 'class': 'band' });
       r.style.setProperty('--h', L.h);
       r.dataset.l = i;
       gBands.appendChild(r);
     });
-    NODES.forEach(function (n) {
-      n.up.forEach(function (u) {
-        var p = svgEl('path', { d: fmPath(n, by[u]), 'class': 'be' });
-        p.style.setProperty('--h', LAYERS[n.l].h);
-        gBg.appendChild(p);
-      });
+    /* layer-to-layer arcs for the overview */
+    var pc = {};
+    NODES.forEach(function (n) { n.up.forEach(function (u) { var b = by[u].l; if (b !== n.l) { var key = n.l + '>' + b; pc[key] = (pc[key] || 0) + 1; } }); });
+    Object.keys(pc).sort(function (x, y) { return pc[y] - pc[x]; }).forEach(function (key) {
+      var c = pc[key]; if (c < 3) return;
+      var ab = key.split('>').map(Number), a = ab[0], b = ab[1];
+      var ya = fmCY[a], yb = fmCY[b], span = b - a, bulge = Math.min(FMC.ARC - 20, 46 + span * 34), x0 = W - 4;
+      var path = svgEl('path', { d: 'M' + x0 + ' ' + ya + 'C' + (x0 + bulge) + ' ' + (ya + (yb - ya) * 0.1) + ',' + (x0 + bulge) + ' ' + (yb - (yb - ya) * 0.1) + ',' + x0 + ' ' + yb, 'class': 'arc' });
+      path.style.setProperty('--h', LAYERS[a].h);
+      path.style.strokeWidth = Math.min(6.5, 0.9 + c * 0.28) + 'px';
+      var t = svgEl('title'); t.textContent = SHORT[LAYERS[a].id] + ' → ' + SHORT[LAYERS[b].id] + ': ' + c + ' links'; path.appendChild(t);
+      gArcs.appendChild(path);
     });
     NODES.forEach(function (n) {
-      var g = svgEl('g', { 'class': 'fn k-' + n.kind, transform: 'translate(' + n.fx + ',' + n.fy + ')', tabindex: -1 });
+      var g = svgEl('g', { 'class': 'fn k-' + n.kind, tabindex: -1 });
+      g.style.transform = 'translate(' + n.fx + 'px,' + n.fy + 'px)';
       g.dataset.id = n.id;
       g.style.setProperty('--h', LAYERS[n.l].h);
       var t = svgEl('title'); t.textContent = n.n + (n.pq ? ' (' + n.pq + ')' : ''); g.appendChild(t);
-      g.appendChild(svgEl('circle', { r: R, 'class': 'c' }));
+      var vis = svgEl('g', { 'class': 'vis' });
+      vis.appendChild(svgEl('circle', { r: R, 'class': 'c' }));
       var mono = svgEl('text', { 'class': 'mono', y: 6, 'text-anchor': 'middle' });
       if (n.e) { mono.textContent = n.e; mono.setAttribute('class', 'mono emo'); mono.setAttribute('y', 10); }
       else mono.textContent = n.n.replace(/[^A-Za-z0-9 ]/g, '').split(' ').slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase();
-      g.appendChild(mono);
+      vis.appendChild(mono);
       if (n.d && !n.e) {
         var im = new Image();
         im.referrerPolicy = 'no-referrer';
@@ -606,59 +661,63 @@
           if (im.naturalWidth > 16) {
             var ie = svgEl('image', { x: -R * 0.62, y: -R * 0.62, width: R * 1.24, height: R * 1.24, 'class': 'lgo' });
             ie.setAttributeNS('http://www.w3.org/1999/xlink', 'href', im.src); ie.setAttribute('href', im.src);
-            g.insertBefore(ie, mono.nextSibling); mono.setAttribute('class', 'mono hide');
+            vis.insertBefore(ie, mono.nextSibling); mono.setAttribute('class', 'mono hide');
           }
         };
         im.src = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(n.d) + '&sz=128';
       }
-      var nm = n.n.length > 17 ? n.n.slice(0, 16) + '…' : n.n;
-      var lbl = svgEl('text', { 'class': 'lbl', y: R + 17, 'text-anchor': 'middle' }); lbl.textContent = nm; g.appendChild(lbl);
+      if (n.c) { var dm = svgEl('text', { 'class': 'dm', x: R - 4, y: -R + 8 }); dm.textContent = '◆'; vis.appendChild(dm); }
+      g.appendChild(vis);
+      var nm = n.n.length > 15 ? n.n.slice(0, 14) + '…' : n.n;
+      var lbl = svgEl('text', { 'class': 'lbl', y: R + 20, 'text-anchor': 'middle' }); lbl.textContent = nm; g.appendChild(lbl);
       if (n.pq || n.kind === 'private') {
-        var tk = svgEl('text', { 'class': 'tk', y: R + 31, 'text-anchor': 'middle' }); tk.textContent = n.pq || 'Private'; g.appendChild(tk);
+        var tk = svgEl('text', { 'class': 'tk', y: R + 36, 'text-anchor': 'middle' }); tk.textContent = n.pq || 'Private'; g.appendChild(tk);
       }
-      if (n.c) { var dm = svgEl('text', { 'class': 'dm', x: R - 4, y: -R + 8 }); dm.textContent = '◆'; g.appendChild(dm); }
       gNodes.appendChild(g);
       fmNodes[n.id] = g;
     });
-    fmVp.appendChild(gBands); fmVp.appendChild(gBg); fmVp.appendChild(gHi); fmVp.appendChild(gNodes);
+    fmVp.appendChild(gBands); fmVp.appendChild(gBg); fmVp.appendChild(gArcs); fmVp.appendChild(gHi); fmVp.appendChild(gNodes);
 
     FM.chips = LAYERS.map(function (L, i) {
       var c = el('button', 'rail-chip');
       c.type = 'button';
       c.style.setProperty('--h', L.h);
       c.appendChild(el('b', null, String(i).padStart(2, '0')));
-      c.appendChild(el('span', 't', L.name));
-      c.title = L.name + ' — click to zoom in';
+      c.appendChild(el('span', 't', SHORT[L.id]));
+      c.appendChild(el('i', null, String(rows[i].length)));
+      c.title = L.name + ' — ' + rows[i].length + ' players. Click to zoom in.';
       c.addEventListener('click', function () { fmFlyLayer(i); });
       fmRail.appendChild(c);
       return c;
+    });
+    FM.zlabels = ZONES.map(function (z) {
+      var d = el('div', 'rail-zone', z.name);
+      d.style.setProperty('--h', z.h);
+      fmRail.appendChild(d);
+      return d;
     });
     var jump = $('#fm-jump');
     LAYERS.forEach(function (L, i) { var o = el('option', null, String(i).padStart(2, '0') + ' · ' + L.name); o.value = i; jump.appendChild(o); });
     jump.addEventListener('change', function () { if (jump.value !== '') fmFlyLayer(+jump.value); jump.value = ''; });
 
-    /* interaction: wheel, drag, pinch, click, dblclick */
-    var ptrs = {}, last = null, moved = 0, pinch0 = 0;
-    fmEl.addEventListener('wheel', function (ev) {
-      ev.preventDefault(); fmCancel();
-      var r = fmEl.getBoundingClientRect(), cx = ev.clientX - r.left, cy = ev.clientY - r.top;
-      var f = Math.exp(-ev.deltaY * (ev.ctrlKey ? 0.012 : 0.0016));
-      zoomAt(cx, cy, f);
-    }, { passive: false });
+    /* interaction: wheel, drag, pinch, click, dblclick, hover */
+    var ptrs = {}, moved = 0, pinch0 = 0;
+    function hideHint() { var h = $('.fm-hint'); if (h) h.classList.add('gone'); }
     function zoomAt(cx, cy, f) {
       var nk = fmClamp(fmV.k * f), q = nk / fmV.k;
       fmSet(cx - (cx - fmV.x) * q, cy - (cy - fmV.y) * q, nk);
     }
-    function hideHint() { var h = $('.fm-hint'); if (h) h.classList.add('gone'); }
-    fmEl.addEventListener('wheel', hideHint, { passive: true });
+    fmEl.addEventListener('wheel', function (ev) {
+      ev.preventDefault(); fmCancel(); hideHint();
+      var r = fmEl.getBoundingClientRect();
+      zoomAt(ev.clientX - r.left, ev.clientY - r.top, Math.exp(-ev.deltaY * (ev.ctrlKey ? 0.012 : 0.0016)));
+    }, { passive: false });
     fmEl.addEventListener('pointerdown', function (ev) {
       if (ev.target.closest('.fm-ui, .rail-chip')) return;
-      hideHint();
-      fmCancel();
+      hideHint(); fmCancel();
       fmEl.setPointerCapture(ev.pointerId);
       ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
-      var ids = Object.keys(ptrs);
-      moved = 0; last = { x: ev.clientX, y: ev.clientY };
+      var ids = Object.keys(ptrs); moved = 0;
       if (ids.length === 2) { var a = ptrs[ids[0]], b = ptrs[ids[1]]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); }
       fmEl.classList.add('grab');
     });
@@ -668,8 +727,7 @@
       ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
       var ids = Object.keys(ptrs);
       if (ids.length >= 2) {
-        var a = ptrs[ids[0]], b = ptrs[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y);
-        var r = fmEl.getBoundingClientRect();
+        var a = ptrs[ids[0]], b = ptrs[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y), r = fmEl.getBoundingClientRect();
         if (pinch0) zoomAt((a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, d / pinch0);
         pinch0 = d; moved = 99;
         fmSet(fmV.x + ((ev.clientX - prev.x) / 2), fmV.y + ((ev.clientY - prev.y) / 2), fmV.k);
@@ -690,27 +748,43 @@
       var g = ev.target.closest('.fn');
       if (g) { var id = g.dataset.id; if (state.sel === id) clearSel(); else select(id); return; }
       var band = ev.target.closest('.band');
-      if (band && fmV.k < 0.45) { fmFlyLayer(+band.dataset.l); return; }
+      if (band && fmV.k < 0.5) { fmFlyLayer(+band.dataset.l); return; }
       if (state.sel && !ev.target.closest('.fm-ui, .rail-chip')) clearSel();
     });
     fmEl.addEventListener('dblclick', function (ev) {
       if (ev.target.closest('.fm-ui, .rail-chip, .fn')) return;
       var r = fmEl.getBoundingClientRect(); fmCancel();
-      var cx = (ev.clientX - r.left - fmV.x) / fmV.k, cy = (ev.clientY - r.top - fmV.y) / fmV.k;
-      fmFlyCenter(cx, cy, fmV.k * 2.2, 450);
+      fmFlyCenter((ev.clientX - r.left - fmV.x) / fmV.k, (ev.clientY - r.top - fmV.y) / fmV.k, fmV.k * 2.2, 450);
     });
+    fmEl.addEventListener('mouseover', function (ev) {
+      if (state.sel || state.journey || mq.matches || FM.zc === 'z0') return;
+      var g = ev.target.closest('.fn'), id = g ? g.dataset.id : null;
+      if (id !== state.hover) { state.hover = id; apply(); }
+    });
+    fmEl.addEventListener('mouseleave', function () { if (state.hover) { state.hover = null; apply(); } });
     $('#fm-in').addEventListener('click', function () { var p = fmPad(); fmCancel(); zoomAt((p.w - p.r) / 2, (p.h - p.b) / 2, 1.5); });
     $('#fm-out').addEventListener('click', function () { var p = fmPad(); fmCancel(); zoomAt((p.w - p.r) / 2, (p.h - p.b) / 2, 1 / 1.5); });
     $('#fm-fit').addEventListener('click', function () { fmCancel(); fmFitAll(true); });
-    window.addEventListener('resize', function () { if (state.mode === 'map') { fmRailUpdate(); } });
+    $('#fm-links').addEventListener('click', function () {
+      var on = fmSvg.classList.toggle('show-links');
+      this.setAttribute('aria-pressed', String(on));
+      if (on) fmBuildBg();
+    });
+    window.addEventListener('resize', function () { if (state.mode === 'map') fmRailUpdate(); });
 
+    fmSvg.classList.add('noanim');
     FM.ready = true;
     fmFitAll(false);
+    FM.compact = null;
+    fmPlace(FM.zc === 'z0');
+    requestAnimationFrame(function () { requestAnimationFrame(function () { fmSvg.classList.remove('noanim'); }); });
   }
 
   var FM_CLASSES = ['sel', 'sup', 'cus', 'dim', 'jn', 'off'];
   function fmUpdate(cls, edges, active) {
     if (!FM.ready) return;
+    FM.active = !!active;
+    fmPlace(FM.zc === 'z0' && !FM.active);
     NODES.forEach(function (n) {
       var g = fmNodes[n.id];
       FM_CLASSES.forEach(function (c) { g.classList.remove(c); });
@@ -735,7 +809,7 @@
       if (!noScroll) window.scrollTo({ top: $('#map-top').offsetTop, behavior: 'auto' });
       requestAnimationFrame(function () {
         if (state.sel) fmFocus(state.sel);
-        else if (mq.matches) fmSet(62, 14, 0.34);
+        else if (mq.matches) fmSet(fmEl.clientWidth / 2 - (FMC.W / 2) * 0.27, 14, 0.27);
         else fmFitAll(false);
         apply();
       });

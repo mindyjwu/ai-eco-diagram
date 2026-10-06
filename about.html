@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    (function () {
+      var t;
+      try { t = localStorage.getItem('mw-theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.mwTheme = t;
+    })();
+  </script>
+  <title>About · The AI Money Map</title>
+  <meta name="description" content="Who actually pays for AI? What the AI Money Map is, how to read it, the guided journeys, and the caveats.">
+  <meta name="author" content="Mindy Wu">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #F3F8FA; --surface: #FFFFFF; --surface-2: #EDF3F6; --ink: #16232E; --ink-soft: #3E5A6E; --muted: #6B8696; --border: rgba(22,35,46,.11); --accent: #2F6690; --sup: #138a78; --cus: #d97706; --shadow: 0 1px 2px rgba(22,35,46,.06), 0 10px 28px -16px rgba(22,35,46,.25); --glass: rgba(248,251,253,.86); }
+    html[data-mw-theme="dark"] { color-scheme: dark; --bg: #0C141B; --surface: #131F29; --surface-2: #182632; --ink: #E6EEF3; --ink-soft: #AEC1CE; --muted: #7E96A6; --border: rgba(230,238,243,.11); --accent: #8CBCE0; --sup: #3fd0b8; --cus: #fbb040; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 30px -18px rgba(0,0,0,.8); --glass: rgba(12,20,27,.86); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; font-size: 16px; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+    .bar { position: sticky; top: 0; z-index: 10; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .bar .wrap { display: flex; align-items: center; gap: 12px; height: 54px; }
+    .brand { text-decoration: none; font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; color: var(--ink); }
+    .brand span { font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-left: 6px; }
+    .sp { flex: 1; }
+    .btn { display: inline-block; padding: 10px 20px; border-radius: 999px; font-weight: 700; font-size: 15px; text-decoration: none; background: var(--ink); color: var(--bg); }
+    .btn:hover { background: var(--accent); }
+    .btn.sm { padding: 7px 14px; font-size: 13.5px; }
+    .theme { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); display: grid; place-items: center; color: var(--ink-soft); }
+    .theme:hover { color: var(--accent); border-color: var(--accent); }
+    .theme svg { width: 16px; height: 16px; }
+    .theme .sun { display: none; }
+    html[data-mw-theme="dark"] .theme .sun { display: block; }
+    html[data-mw-theme="dark"] .theme .moon { display: none; }
+    .eyebrow { font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin: 56px 0 .8rem; }
+    h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(36px, 6vw, 64px); line-height: 1.05; max-width: 16ch; text-wrap: balance; }
+    h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+    .lede { margin-top: 1.1rem; font-size: clamp(16px, 2vw, 19px); color: var(--ink-soft); max-width: 62ch; }
+    .cta { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
+    .muted { color: var(--muted); font-size: 14px; }
+    .stats { display: flex; flex-wrap: wrap; gap: 10px 32px; margin-top: 1.8rem; }
+    .stat b { display: block; font-family: 'Fraunces', serif; font-size: 32px; line-height: 1; }
+    .stat span { font-size: 12.5px; color: var(--muted); }
+    h2 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; margin: 3rem 0 .9rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; font-size: 14.5px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 6px; text-decoration: none; }
+    .card b, .card h3 { color: var(--ink); font-size: 16px; font-family: 'Fraunces', serif; font-weight: 600; }
+    a.card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+    a.card { transition: transform .15s, border-color .15s, box-shadow .15s; }
+    .card em { font-style: normal; font-size: 12.5px; font-weight: 700; color: var(--accent); margin-top: auto; }
+    .key { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; margin: 0 4px 2px 2px; border-radius: 2px; }
+    .key.s { border-color: var(--sup); } .key.c { border-color: var(--cus); }
+    .pushline { margin: 3rem 0 0; padding: 22px 24px; border-radius: 18px; background: var(--ink); color: var(--bg); font-family: 'Fraunces', serif; font-size: clamp(18px, 2.6vw, 24px); line-height: 1.35; }
+    .prose p { max-width: 70ch; color: var(--ink-soft); }
+    .prose p + p { margin-top: .8rem; }
+    footer { padding: 36px 0 80px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="index.html">AI Money Map<span>by Mindy Wu</span></a>
+    <span class="sp"></span>
+    <a class="btn sm" href="index.html">Open the map &rarr;</a>
+    <button class="theme" id="theme" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="eyebrow">About the AI Money Map</div>
+  <h1>Who actually pays for <em>AI?</em></h1>
+  <p class="lede">You do, a few dollars at a time. Your Amazon orders, your feed, your meals, your trips, your classes, your paycheck, your side hustle, your doctor and your chatbot all run on AI. This map follows that money down through platforms, labs, clouds, chips, factories, power plants and rockets, to a quartz mine in North Carolina, so you can see the whole ecosystem and where you might fit in it.</p>
+  <div class="cta">
+    <a class="btn" href="index.html">Open the map &rarr;</a>
+    <span class="muted">Zoomable, with every company and every link.</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="st-layers">0</b><span>layers</span></div>
+    <div class="stat"><b id="st-nodes">0</b><span>players</span></div>
+    <div class="stat"><b id="st-links">0</b><span>links</span></div>
+    <div class="stat"><b id="st-choke">0</b><span>chokepoints &#9670;</span></div>
+  </div>
+
+  <h2>How to read it</h2>
+  <div class="grid">
+    <div class="card"><b>1 &middot; Start from the overview</b>26 layers sit in five zones, from what you spend and consume at the top to raw materials at the bottom. Each row shows its best-connected logos, and the arcs on the right show how many links run between layers.</div>
+    <div class="card"><b>2 &middot; Zoom to open a layer</b>Scroll or pinch, or click a layer chip. The row spreads out to every company, then shows names and tickers as you zoom closer.</div>
+    <div class="card"><b>3 &middot; Click a company</b>A panel shows what it makes, how it&rsquo;s doing and where the opportunity is. <span><span class="key c"></span>Amber lines: who depends on it. <span class="key s"></span>Teal: what it depends on. Dashes move the way money flows.</span></div>
+    <div class="card"><b>4 &middot; Use the lenses</b>Filter to public stocks, private companies, &#9670; chokepoints (parts the world can&rsquo;t easily replace) or non-company items. Press <b style="display:inline">/</b> to search.</div>
+  </div>
+
+  <h2>Guided journeys</h2>
+  <p class="muted" style="margin-bottom:.9rem">Follow one everyday thing all the way down the chain.</p>
+  <div class="grid" id="journeys"></div>
+
+  <h2>Four ways into this map</h2>
+  <div class="grid">
+    <a class="card" href="index.html#lens=public"><h3>Own a piece</h3>Public companies show up with a ticker and a live-quote link. Think about which layer you understand best, and whether you are paying for a chokepoint or just a story.<em>Show public stocks &rarr;</em></a>
+    <a class="card" href="index.html#lens=choke"><h3>Work inside it</h3>Fabs, power, cooling and grid construction are short of skilled people. Chip design, ML and infrastructure roles sit across every layer.<em>Show chokepoints &rarr;</em></a>
+    <a class="card" href="index.html#lens=private"><h3>Build on it</h3>Every layer has a &ldquo;builder&rsquo;s angle&rdquo; in the Layers view. Private companies are your potential partners, customers or competitors.<em>Show private companies &rarr;</em></a>
+    <a class="card" href="index.html#lens=other"><h3>Finance or govern it</h3>Datacentres run on private credit and sovereign money, and the bottom of the chain is shaped by export controls and mining policy.<em>Show other items &rarr;</em></a>
+  </div>
+
+  <p class="pushline">Every layer on this map was once someone&rsquo;s bold bet. A food company ended up holding the key film inside AI chips. A rocket company rewrote launch costs. The next one could be yours: be ambitious, be curious, and look for the layer others are ignoring.</p>
+
+  <h2>Caveats</h2>
+  <div class="prose">
+    <p><strong>Educational, not investment advice.</strong> Descriptions reflect my knowledge to roughly mid-2026 and some details will have moved. &ldquo;How they&rsquo;re doing&rdquo; is qualitative on purpose; use the live-quote and website links in each company&rsquo;s panel before acting on anything.</p>
+    <p>Lines show typical, publicly known relationships, simplified. They are not a list of contracts and some are indicative. Logos are fetched from each company&rsquo;s own website; trademarks belong to their owners.</p>
+    <p>Spot an error or a missing company? Tell me and I&rsquo;ll add it. The Layers view on the map has the same data as a scrollable list, which is also the keyboard-friendly way to explore it.</p>
+  </div>
+
+  <footer>Built by <a href="https://mindy-portfolio.vercel.app">Mindy Wu</a> &middot; <a href="https://github.com/mindyjwu/ai-eco-diagram">Source</a></footer>
+</main>
+
+<script src="js/ai-map-data.js"></script>
+<script>
+  (function () {
+    var D = window.AIMAP;
+    function $(i) { return document.getElementById(i); }
+    $('st-layers').textContent = D.LAYERS.length;
+    $('st-nodes').textContent = D.NODES.length;
+    $('st-links').textContent = D.NODES.reduce(function (a, n) { return a + n.up.length; }, 0);
+    $('st-choke').textContent = D.NODES.filter(function (n) { return n.c; }).length;
+    var box = $('journeys');
+    D.JOURNEYS.forEach(function (j) {
+      var a = document.createElement('a');
+      a.className = 'card'; a.href = 'index.html#j=' + j.id;
+      var b = document.createElement('b'); b.textContent = j.title;
+      var p = document.createElement('span'); p.textContent = j.blurb;
+      var e = document.createElement('em'); e.textContent = j.steps.length + ' steps →';
+      a.appendChild(b); a.appendChild(p); a.appendChild(e); box.appendChild(a);
+    });
+    $('theme').addEventListener('click', function () {
+      var t = document.documentElement.dataset.mwTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.mwTheme = t;
+      try { localStorage.setItem('mw-theme', t); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

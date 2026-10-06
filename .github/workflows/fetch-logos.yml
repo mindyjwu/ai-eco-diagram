@@ -1,0 +1,53 @@
+name: Fetch logos
+
+# Downloads each company's logo into assets/logos/ so the site doesn't depend on
+# third-party favicon services at view time. Runs when the company list changes,
+# once a month to pick up rebrands, and on demand from the Actions tab.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'js/ai-map-data.js'
+      - 'scripts/fetch-logos.mjs'
+  schedule:
+    - cron: '23 5 1 * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Re-download every logo, not just the missing ones'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-logos
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download logos
+        run: node scripts/fetch-logos.mjs ${{ inputs.force && '--force' || '' }}
+
+      - name: Commit any new or updated logos
+        run: |
+          if [ -z "$(git status --porcelain assets/logos)" ]; then
+            echo "No logo changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/logos
+          git commit -m "Update logos"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

@@ -34,9 +34,8 @@ Educational, not investment advice. Descriptions reflect knowledge to roughly mi
 
 ## Logos
 
-Logos are shown from `assets/logos/` when present, and otherwise fetched live from several favicon services in turn (Google, Google's gstatic, DuckDuckGo, then the company's own `/favicon.ico`), with a letter badge as the last resort. To stop depending on third-party services, download them once and commit:
+Logos are shown from `assets/logos/` when present, and otherwise fetched live from several favicon services in turn (Google, Google's gstatic, DuckDuckGo, then the company's own `/favicon.ico`), with a letter badge as the last resort.
 
-```bash
-node scripts/fetch-logos.mjs   # needs Node 18+ and internet access
-git add assets/logos && git commit -m "Add logos" && git push
-```
+A GitHub Action (`.github/workflows/fetch-logos.yml`) keeps `assets/logos/` up to date automatically: it runs whenever `js/ai-map-data.js` changes (for example when you add a company), once a month to catch rebrands, and on demand from the repo's **Actions** tab (*Fetch logos → Run workflow*; tick *force* to re-download everything). It commits any new logos back to `main`, which redeploys the site.
+
+To do the same locally: `node scripts/fetch-logos.mjs` (Node 18+, internet access), then commit `assets/logos/`.

@@ -36,18 +36,79 @@
     if (text != null) e.textContent = text;
     return e;
   }
+  /* ---------- logos: try several favicon sources in turn; cache the winner per domain ---------- */
+  var LOGO_KEY = 'aimap-logos-v2';
+  var logoStore = {}, logoMemo = {};
+  try { logoStore = JSON.parse(localStorage.getItem(LOGO_KEY) || '{}') || {}; } catch (e) { logoStore = {}; }
+  window.__logoStats = { ok: 0, fail: 0, bySource: {} };
+  function probeImg(u, min) {
+    return new Promise(function (resolve) {
+      var im = new Image(), done = false;
+      function fin(v) { if (!done) { done = true; clearTimeout(t); resolve(v); } }
+      var t = setTimeout(function () { fin(null); }, 7000);
+      im.referrerPolicy = 'no-referrer';
+      im.onload = function () { fin(im.naturalWidth >= min ? u : null); };
+      im.onerror = function () { fin(null); };
+      im.src = u;
+    });
+  }
+  function logoSources(d) {
+    var e = encodeURIComponent(d);
+    return [
+      ['google', 'https://www.google.com/s2/favicons?domain=' + e + '&sz=128', 32],
+      ['gstatic', 'https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://' + e + '&size=128', 32],
+      ['duckduckgo', 'https://icons.duckduckgo.com/ip3/' + d + '.ico', 16],
+      ['site', 'https://' + d + '/favicon.ico', 16]
+    ];
+  }
+  /* logos saved in the repo (see scripts/fetch-logos.mjs) win over any third-party service */
+  var logoManifest = (window.fetch ? fetch('assets/logos/manifest.json').then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }) : Promise.resolve({}));
+  function findLogo(d) {
+    if (logoMemo[d]) return logoMemo[d];
+    var p = logoManifest.then(function (m) {
+      if (m && m[d]) {
+        return probeImg('assets/logos/' + m[d], 16).then(function (u) {
+          if (u) { window.__logoStats.ok++; window.__logoStats.bySource.local = (window.__logoStats.bySource.local || 0) + 1; return u; }
+          return viaServices(d);
+        });
+      }
+      return viaServices(d);
+    });
+    logoMemo[d] = p;
+    return p;
+  }
+  function viaServices(d) {
+    if (logoStore[d]) return probeImg(logoStore[d], 16).then(function (u) { return u || trySources(d); });
+    return trySources(d);
+  }
+  function trySources(d) {
+    var list = logoSources(d), i = 0;
+    return (function next() {
+      if (i >= list.length) { window.__logoStats.fail++; return Promise.resolve(null); }
+      var src = list[i++];
+      return probeImg(src[1], src[2]).then(function (u) {
+        if (!u) return next();
+        window.__logoStats.ok++;
+        window.__logoStats.bySource[src[0]] = (window.__logoStats.bySource[src[0]] || 0) + 1;
+        logoStore[d] = u;
+        try { localStorage.setItem(LOGO_KEY, JSON.stringify(logoStore)); } catch (e) {}
+        return u;
+      });
+    })();
+  }
   function logo(n, size) {
     var wrap = el('span', 'lg lg-' + size);
     if (n.e && !n.d) { wrap.classList.add('lg-emoji'); wrap.textContent = n.e; wrap.setAttribute('aria-hidden', 'true'); return wrap; }
     if (n.e) { wrap.classList.add('lg-emoji'); wrap.textContent = n.e; return wrap; }
     var mono = el('span', 'lg-mono', n.n.replace(/[^A-Za-z0-9 ]/g, '').split(' ').slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase());
     wrap.appendChild(mono);
-    var img = new Image();
-    img.alt = '';
-    img.decoding = 'async';
-    img.referrerPolicy = 'no-referrer';
-    img.onload = function () { if (img.naturalWidth > 16) { wrap.appendChild(img); mono.style.display = 'none'; } };
-    img.src = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(n.d) + '&sz=128';
+    findLogo(n.d).then(function (u) {
+      if (!u) return;
+      var img = new Image();
+      img.alt = ''; img.decoding = 'async'; img.referrerPolicy = 'no-referrer';
+      img.onload = function () { wrap.appendChild(img); mono.style.display = 'none'; };
+      img.src = u;
+    });
     return wrap;
   }
   var mq = window.matchMedia('(max-width: 900px)');
@@ -654,16 +715,12 @@
       else mono.textContent = n.n.replace(/[^A-Za-z0-9 ]/g, '').split(' ').slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase();
       vis.appendChild(mono);
       if (n.d && !n.e) {
-        var im = new Image();
-        im.referrerPolicy = 'no-referrer';
-        im.onload = function () {
-          if (im.naturalWidth > 16) {
-            var ie = svgEl('image', { x: -R * 0.62, y: -R * 0.62, width: R * 1.24, height: R * 1.24, 'class': 'lgo' });
-            ie.setAttributeNS('http://www.w3.org/1999/xlink', 'href', im.src); ie.setAttribute('href', im.src);
-            vis.insertBefore(ie, mono.nextSibling); mono.setAttribute('class', 'mono hide');
-          }
-        };
-        im.src = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(n.d) + '&sz=128';
+        findLogo(n.d).then(function (u) {
+          if (!u) return;
+          var ie = svgEl('image', { x: -R * 0.62, y: -R * 0.62, width: R * 1.24, height: R * 1.24, 'class': 'lgo', preserveAspectRatio: 'xMidYMid meet' });
+          ie.setAttributeNS('http://www.w3.org/1999/xlink', 'href', u); ie.setAttribute('href', u);
+          vis.insertBefore(ie, mono.nextSibling); mono.setAttribute('class', 'mono hide');
+        });
       }
       if (n.c) { var dm = svgEl('text', { 'class': 'dm', x: R - 4, y: -R + 8 }); dm.textContent = '◆'; vis.appendChild(dm); }
       g.appendChild(vis);

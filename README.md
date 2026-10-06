@@ -31,3 +31,12 @@ All companies, layers and journeys live in `js/ai-map-data.js`. Each node lists 
 ## Caveats
 
 Educational, not investment advice. Descriptions reflect knowledge to roughly mid-2026; "how they're doing" is qualitative on purpose. Links between companies are simplified, publicly known patterns, not contracts.
+
+## Logos
+
+Logos are shown from `assets/logos/` when present, and otherwise fetched live from several favicon services in turn (Google, Google's gstatic, DuckDuckGo, then the company's own `/favicon.ico`), with a letter badge as the last resort. To stop depending on third-party services, download them once and commit:
+
+```bash
+node scripts/fetch-logos.mjs   # needs Node 18+ and internet access
+git add assets/logos && git commit -m "Add logos" && git push
+```

@@ -23,28 +23,63 @@ fs.mkdirSync(outDir, { recursive: true });
 const manifestPath = path.join(outDir, 'manifest.json');
 const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : {};
 
+/* Companies whose own domain blocks bots or only returns a placeholder: also try these. */
+const ALT = {
+  'alibabagroup.com': ['alibaba.com', 'aliyun.com'],
+  'mgx.ae': ['www.mgx.ae'],
+  'quantatw.com': ['quanta.com.tw'],
+  'tel.com': ['tokyoelectron.com', 'tel.co.jp'],
+  'shinetsu.co.jp': ['shinetsu.jp', 'shin-etsu.co.jp'],
+  'sas-globalwafers.com': ['globalwafers.com'],
+  'ibiden.com': ['ibiden.co.jp'],
+  'nittobo.co.jp': ['nittobo.com'],
+  'honeywell.com': ['aerospace.honeywell.com'],
+  'thequartzcorp.com': ['quartzcorp.com'],
+  'yum.com': ['tacobell.com', 'kfc.com'],
+  'ulalaunch.com': ['ula.com'],
+  'applovin.com': ['axon.ai'],
+};
+
 const sources = (d) => [
-  [`https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=128`, 1500],
-  [`https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${d}&size=128`, 1500],
-  [`https://icons.duckduckgo.com/ip3/${d}.ico`, 300],
-  [`https://${d}/favicon.ico`, 300],
+  ['google', `https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=128`],
+  ['gstatic', `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${d}&size=128`],
+  ['duckduckgo', `https://icons.duckduckgo.com/ip3/${d}.ico`],
+  ['site', `https://${d}/favicon.ico`],
 ];
 const ext = (type) => (/svg/.test(type) ? 'svg' : /png/.test(type) ? 'png' : /jpe?g/.test(type) ? 'jpg' : /webp/.test(type) ? 'webp' : /icon|ico/.test(type) ? 'ico' : null);
 
+/* Real pixel width where we can read it (PNG header / ICO directory), else null. */
+function width(buf, e) {
+  if (e === 'png' && buf.length > 24 && buf.readUInt32BE(0) === 0x89504e47) return buf.readUInt32BE(16);
+  if (e === 'ico' && buf.length > 8) { let w = 0; const n = buf.readUInt16LE(4); for (let i = 0; i < n && 6 + i * 16 < buf.length; i++) w = Math.max(w, buf[6 + i * 16] || 256); return w || null; }
+  return null;
+}
+/* Google's "no favicon" globe is a 16px image, so it fails the size test; real logos are bigger. */
+function good(name, buf, e) {
+  const w = width(buf, e);
+  if (name === 'google' || name === 'gstatic') return w != null ? w >= 32 : buf.length >= 1500;
+  return w != null ? w >= 16 : buf.length >= 300;
+}
+
 async function grab(d) {
-  for (const [url, minBytes] of sources(d)) {
-    try {
-      const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(10000), headers: { 'user-agent': 'Mozilla/5.0 (logo fetch for ai-eco-diagram)' } });
-      if (!res.ok) continue;
-      const type = (res.headers.get('content-type') || '').toLowerCase();
-      const e = ext(type);
-      if (!e) continue;
-      const buf = Buffer.from(await res.arrayBuffer());
-      if (buf.length < minBytes) continue; // tiny = the generic globe placeholder
-      const file = `${d}.${e}`;
-      fs.writeFileSync(path.join(outDir, file), buf);
-      return file;
-    } catch { /* try the next source */ }
+  const tries = [d];
+  if (!d.startsWith('www.')) tries.push('www.' + d);
+  for (const alt of ALT[d] || []) { tries.push(alt); if (!alt.startsWith('www.')) tries.push('www.' + alt); }
+  for (const dom of tries) {
+    for (const [name, url] of sources(dom)) {
+      try {
+        const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(10000), headers: { 'user-agent': 'Mozilla/5.0 (logo fetch for ai-eco-diagram)' } });
+        if (!res.ok) continue;
+        const type = (res.headers.get('content-type') || '').toLowerCase();
+        const e = ext(type);
+        if (!e) continue;
+        const buf = Buffer.from(await res.arrayBuffer());
+        if (!good(name, buf, e)) continue;
+        const file = `${d}.${e}`;
+        fs.writeFileSync(path.join(outDir, file), buf);
+        return file;
+      } catch { /* try the next source */ }
+    }
   }
   return null;
 }

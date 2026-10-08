@@ -125,16 +125,24 @@
     z.b = LAYERS.findIndex(function (L) { return L.id === z.to; });
     for (var i = z.a; i <= z.b; i++) zoneOf[i] = zi;
   });
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function zoneColor(zi, t) {
+    var st = ZONES[zi].stops, x = t * (st.length - 1), i = Math.min(st.length - 2, Math.floor(x)), f = x - i;
+    return [lerp(st[i][0], st[i + 1][0], f), lerp(st[i][1], st[i + 1][1], f), lerp(st[i][2], st[i + 1][2], f)];
+  }
   function setPal(el, layer) {
-    var z = ZONES[zoneOf[layer]], n = z.b - z.a, t = n ? (layer - z.a) / n : 0.5;
-    el.style.setProperty('--h', z.h);
-    el.style.setProperty('--s', '34%');
-    el.style.setProperty('--l', Math.round(40 + t * 13) + '%');
+    var zi = zoneOf[layer], z = ZONES[zi], n = z.b - z.a, k = layer - z.a, t = n ? k / n : 0.5;
+    var c = zoneColor(zi, t);
+    var l = c[2] + (n >= 3 ? (k % 2 ? 4 : -4) : 0);          /* alternate light/dark so neighbours stay distinct */
+    el.style.setProperty('--h', Math.round((c[0] + 360) % 360));
+    el.style.setProperty('--s', Math.round(c[1]) + '%');
+    el.style.setProperty('--l', Math.round(l) + '%');
   }
   function setZonePal(el, zi) {
-    el.style.setProperty('--h', ZONES[zi].h);
-    el.style.setProperty('--s', '34%');
-    el.style.setProperty('--l', '44%');
+    var c = zoneColor(zi, 0.5);
+    el.style.setProperty('--h', Math.round((c[0] + 360) % 360));
+    el.style.setProperty('--s', Math.round(c[1]) + '%');
+    el.style.setProperty('--l', Math.round(c[2]) + '%');
   }
   /* first sentence, for tooltips and the short form of panel text */
   function firstSentence(t) { var m = /^(.+?[.!?])(\s|$)/.exec(t || ''); return m ? m[1] : (t || ''); }

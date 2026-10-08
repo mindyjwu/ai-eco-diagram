@@ -120,11 +120,11 @@ const LAYERS = [
 ];
 
 const ZONES = [
-  { id: 'demand', name: 'Demand', sub: 'What people spend, consume and earn. The money at the top that pays for everything below.', from: 'you', to: 'edu', h: 22 },
-  { id: 'ai', name: 'AI products & capital', sub: 'The devices, AI labs, clouds and money that deliver AI.', from: 'devices', to: 'capital', h: 214 },
-  { id: 'phys', name: 'Physical buildout', sub: 'Buildings, power and food: the real-world base AI sits on.', from: 'dc', to: 'agri', h: 150 },
-  { id: 'chips', name: 'Chip supply chain', sub: 'From servers down to wafers and chemicals.', from: 'systems', to: 'materials', h: 268 },
-  { id: 'edge', name: 'Frontier & Earth', sub: 'Space, aerospace and raw materials.', from: 'space', to: 'raw', h: 190 }
+  { id: 'demand', name: 'Demand', sub: 'What people spend, consume and earn. The money at the top that pays for everything below.', from: 'you', to: 'edu', h: 20, stops: [[-8, 74, 58], [8, 86, 56], [18, 94, 55], [27, 96, 54]] },
+  { id: 'ai', name: 'AI products & capital', sub: 'The devices, AI labs, clouds and money that deliver AI.', from: 'devices', to: 'capital', h: 214, stops: [[196, 82, 56], [212, 80, 54], [226, 72, 56], [242, 62, 60]] },
+  { id: 'phys', name: 'Physical buildout', sub: 'Buildings, power and food: the real-world base AI sits on.', from: 'dc', to: 'agri', h: 150, stops: [[170, 62, 42], [146, 56, 46], [112, 50, 48]] },
+  { id: 'chips', name: 'Chip supply chain', sub: 'From servers down to wafers and chemicals.', from: 'systems', to: 'materials', h: 268, stops: [[248, 62, 64], [270, 56, 62], [292, 52, 60], [318, 56, 62]] },
+  { id: 'edge', name: 'Frontier & Earth', sub: 'Space, aerospace and raw materials.', from: 'space', to: 'raw', h: 190, stops: [[184, 70, 46], [198, 46, 56], [212, 24, 64]] }
 ];
 
 // compact constructor

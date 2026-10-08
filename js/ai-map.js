@@ -559,23 +559,23 @@
   });
 
   /* ============================================================
-     FULL MAP — a three-level zoomable view.
-       overview  zones → layers → each layer's 8 best-connected logos,
-                 plus arcs showing how many links run between layers
-       layer     zoom in and a row spreads out to every company
-       company   click one to reveal only its own chains
+     FULL MAP: a space-filling, zoomable layout.
+     The five zones are packed into blocks that suit the window's shape
+     (wide laptops get side-by-side blocks, phones get a stack). Icons,
+     names and titles all live in one scene and scale together, so nothing
+     can overlap at any zoom. Zoom out stops at the fitted view; names
+     appear once they are big enough to read.
      ============================================================ */
-  var FM = { ready: false, zc: '', compact: null, active: false };
-  var FMC = { W: 2800, ARC: 560, ROW: 128, BAND: 108, R: 28, ZGAP: 84, REPS: 8 };
-  var fmEl = $('#fullmap'), fmSvg = $('#fm-svg'), fmVp = $('#fm-vp'), fmRail = $('#fm-rail');
-  var fmV = { x: 0, y: 0, k: 0.2 }, fmFly = 0, fmNodes = {}, fmZoneOf = [], fmCY = [];
+  var FM = { ready: false, zc: '', active: false, sig: '', kfit: 0.3, kmin: 0.3 };
+  var FMC = { CW: 118, CH: 112, R: 27, PADX: 16, LHEAD: 60, LGAP: 12, ZHEAD: 84, ZPADB: 14, ZGAP: 40, MARGIN: 30, KFLOOR: 0.24, TOP: 12, BOTTOM: 66, SIDE: 12 };
+  /* ways to arrange zones [0 demand, 1 AI, 2 physical, 3 chips, 4 frontier] into columns */
+  var ARRS = [
+    [[0], [1], [2], [3], [4]], [[0], [1, 4], [2], [3]], [[0], [1, 2], [3, 4]], [[0], [1, 2, 4], [3]],
+    [[0, 4], [1, 2], [3]], [[0, 1], [2, 3, 4]], [[0, 2], [1, 3, 4]], [[0, 1, 2, 3, 4]]
+  ];
+  var fmEl = $('#fullmap'), fmSvg = $('#fm-svg'), fmVp = $('#fm-vp');
+  var fmV = { x: 0, y: 0, k: 0.3 }, fmFly = 0, fmNodes = {}, fmRows = [], fmLay = [], fmZon = [], fmPos = { layers: [], zones: [] };
 
-  function fmGeometry() {
-    var idx = function (id) { return LAYERS.findIndex(function (L) { return L.id === id; }); };
-    ZONES.forEach(function (z, zi) { z.a = idx(z.from); z.b = idx(z.to); for (var i = z.a; i <= z.b; i++) fmZoneOf[i] = zi; });
-    LAYERS.forEach(function (L, i) { fmCY[i] = FMC.ZGAP + i * FMC.ROW + fmZoneOf[i] * FMC.ZGAP + FMC.ROW / 2; });
-    FM.H = fmCY[LAYERS.length - 1] + FMC.ROW / 2 + 24;
-  }
   function fmPad() {
     var open = panel.classList.contains('open');
     var w = fmEl.clientWidth, h = fmEl.clientHeight;
@@ -584,38 +584,8 @@
   function fmSet(x, y, k) {
     fmV.x = x; fmV.y = y; fmV.k = k;
     fmVp.setAttribute('transform', 'translate(' + x + ',' + y + ') scale(' + k + ')');
-    var c = k < 0.3 ? 'z0' : k < 0.5 ? 'z1' : k < 1.2 ? 'z2' : 'z3';
-    if (c !== FM.zc) {
-      FM.zc = c; fmSvg.classList.remove('z0', 'z1', 'z2', 'z3'); fmSvg.classList.add(c);
-      if (FM.ready) fmPlace(c === 'z0' && !FM.active);
-    }
-    fmRailUpdate();
-  }
-  /* overview: representative logos sit in a compact strip; everything else folds away */
-  function fmPlace(compact) {
-    if (FM.compact === compact) return;
-    FM.compact = compact;
-    NODES.forEach(function (n) {
-      var g = fmNodes[n.id];
-      g.style.transform = 'translate(' + (compact ? n.ox : n.fx) + 'px,' + n.fy + 'px)';
-      g.classList.toggle('ovhide', compact && !n.rep);
-    });
-    fmSvg.style.setProperty('--ns', compact ? 1.5 : 1);
-    fmSvg.classList.toggle('ov', compact);
-  }
-  function fmRailUpdate() {
-    if (!FM.chips) return;
-    var h = fmEl.clientHeight, k = fmV.k, right = Math.max(fmV.x - 8, mq.matches ? 50 : 8);
-    FM.chips.forEach(function (c, i) {
-      var cy = fmV.y + fmCY[i] * k, off = cy < -20 || cy > h + 20;
-      c.style.display = off ? 'none' : '';
-      if (!off) c.style.transform = 'translate(' + right + 'px,' + cy + 'px) translate(-100%,-50%)';
-    });
-    FM.zlabels.forEach(function (z, zi) {
-      var top = fmV.y + (fmCY[ZONES[zi].a] - FMC.ROW / 2 - FMC.ZGAP * 0.62) * k, off = top < -30 || top > h + 10;
-      z.style.display = off ? 'none' : '';
-      if (!off) z.style.transform = 'translate(' + right + 'px,' + top + 'px) translate(-100%,0)';
-    });
+    var c = k < 0.6 ? 'z0' : k < 1.1 ? 'z1' : k < 1.8 ? 'z2' : 'z3';
+    if (c !== FM.zc) { FM.zc = c; fmSvg.classList.remove('z0', 'z1', 'z2', 'z3'); fmSvg.classList.add(c); }
   }
   function fmCancel() { if (fmFly) { cancelAnimationFrame(fmFly); fmFly = 0; } }
   function fmClamp(k) { return Math.max(FM.kmin, Math.min(3, k)); }
@@ -635,11 +605,19 @@
       fmFly = q < 1 ? requestAnimationFrame(step) : 0;
     })(t0);
   }
+  function fmFitBox(x0, y0, x1, y1, opt) {
+    opt = opt || {};
+    var p = fmPad(), m = opt.margin || 40;
+    var k = Math.min((p.w - p.r - 2 * m) / (x1 - x0), (p.h - p.b - 2 * m) / (y1 - y0));
+    k = Math.max(FM.kmin, Math.min(opt.kmax || 1.3, k));
+    fmFlyCenter((x0 + x1) / 2, (y0 + y1) / 2, k, opt.ms);
+  }
   function fmFitAll(animate) {
-    var p = fmPad(), left = mq.matches ? 60 : 210, ww = FMC.W + FMC.ARC;
-    var k = Math.min((p.w - left - 16) / ww, (p.h - 20) / FM.H);
-    FM.kfit = k; FM.kmin = k * 0.85;
-    var x = left + ((p.w - left - 16) - ww * k) / 2, y = 10 + ((p.h - 20) - FM.H * k) / 2;
+    var p = fmPad(), aw = p.w - 2 * FMC.SIDE, ah = p.h - FMC.TOP - FMC.BOTTOM;
+    var kf = Math.min(aw / FM.W, ah / FM.H);
+    FM.kfit = kf; FM.kmin = Math.max(kf, FMC.KFLOOR);
+    var k = Math.max(FM.kstart || kf, FM.kmin);
+    var x = FM.W * k <= aw ? FMC.SIDE + (aw - FM.W * k) / 2 : FMC.SIDE, y = FM.H * k <= ah ? FMC.TOP + (ah - FM.H * k) / 2 : FMC.TOP;
     if (animate && !reduced) fmFlyCenter((p.w / 2 - x) / k, (p.h / 2 - y) / k, k, 650);
     else fmSet(x, y, k);
   }
@@ -650,21 +628,18 @@
     ids.forEach(function (i) { var m = by[i]; x0 = Math.min(x0, m.fx); x1 = Math.max(x1, m.fx); y0 = Math.min(y0, m.fy); y1 = Math.max(y1, m.fy); });
     x0 -= 90; x1 += 90; y0 -= 90; y1 += 90;
     var p = fmPad(), fit = Math.min((p.w - p.r - 80) / (x1 - x0), (p.h - p.b - 80) / (y1 - y0));
-    var k = Math.max(0.6, Math.min(1.5, fit)), tight = k > fit + 1e-6;
+    var k = Math.max(0.7, Math.min(1.5, fit)), tight = k > fit + 1e-6;
     fmFlyCenter(tight ? n.fx : (x0 + x1) / 2, tight ? n.fy : (y0 + y1) / 2, k);
   }
-  function fmFlyLayer(i) { fmFlyCenter(FMC.W / 2, fmCY[i], 0.56); }
+  function fmFlyLayer(i) { var b = fmPos.layers[i]; fmFitBox(b.x, b.y, b.x + b.w, b.y + b.h, { kmax: 1.15 }); }
+  function fmFlyZone(i) { var b = fmPos.zones[i]; fmFitBox(b.x, b.y, b.x + b.w, b.y + b.h, { kmax: 0.9 }); }
 
+  /* links: smooth S-curves between icon centres (icons sit on top and hide the ends) */
   function fmPath(a, b) {
-    var R = FMC.R, d;
-    if (a.l === b.l) {
-      var y0 = a.fy + R, drop = 26 + Math.min(40, Math.abs(a.fx - b.fx) * 0.05);
-      d = 'M' + a.fx + ' ' + y0 + 'C' + a.fx + ' ' + (y0 + drop) + ',' + b.fx + ' ' + (y0 + drop) + ',' + b.fx + ' ' + y0;
-    } else {
-      var y1 = a.fy + R, y2 = b.fy - R, dy = Math.max(30, (y2 - y1) * 0.5);
-      d = 'M' + a.fx + ' ' + y1 + 'C' + a.fx + ' ' + (y1 + dy) + ',' + b.fx + ' ' + (y2 - dy) + ',' + b.fx + ' ' + y2;
-    }
-    return d;
+    var dx = b.fx - a.fx, dy = b.fy - a.fy, c1x, c1y, c2x, c2y;
+    if (Math.abs(dx) >= Math.abs(dy)) { c1x = a.fx + dx * 0.5; c1y = a.fy; c2x = b.fx - dx * 0.5; c2y = b.fy; }
+    else { c1x = a.fx; c1y = a.fy + dy * 0.5; c2x = b.fx; c2y = b.fy - dy * 0.5; }
+    return 'M' + a.fx + ' ' + a.fy + 'C' + c1x + ' ' + c1y + ',' + c2x + ' ' + c2y + ',' + b.fx + ' ' + b.fy;
   }
   function svgEl(tag, attrs) {
     var e = document.createElementNS(NS, tag);
@@ -673,7 +648,7 @@
   }
   function fmBuildBg() {
     var g = $('#fm-bg');
-    if (g.firstChild) return;
+    while (g.firstChild) g.removeChild(g.firstChild);
     NODES.forEach(function (n) {
       n.up.forEach(function (u) {
         var p = svgEl('path', { d: fmPath(n, by[u]), 'class': 'be' });
@@ -683,58 +658,148 @@
     });
   }
 
-  function buildFM() {
-    var W = FMC.W, R = FMC.R, BAND = FMC.BAND;
-    fmGeometry();
-    var rows = LAYERS.map(function () { return []; });
-    NODES.forEach(function (n) { rows[n.l].push(n); });
-    function assign(r) { r.forEach(function (n, i) { n.fx = 120 + (i + 0.5) * (W - 240) / r.length; n.fy = fmCY[n.l]; }); }
-    rows.forEach(assign);
-    function bary(n) {
-      var s = 0, c = 0;
-      n.up.concat(down[n.id] || []).forEach(function (id) { s += by[id].fx; c++; });
-      return c ? s / c : n.fx;
-    }
-    for (var it = 0; it < 16; it++) {
-      var seq = it % 2 ? rows.slice().reverse() : rows;
-      seq.forEach(function (r) { r.forEach(function (n) { n.bx = bary(n); }); r.sort(function (a, b) { return a.bx - b.bx; }); assign(r); });
-    }
-    /* representatives: the best-connected nodes of each layer, laid out in a compact strip for the overview */
-    rows.forEach(function (r) {
-      var rank = r.slice().sort(function (a, b) {
-        var da = a.up.length + (down[a.id] || []).length + (a.c ? 3 : 0), db = b.up.length + (down[b.id] || []).length + (b.c ? 3 : 0);
-        return db - da;
-      });
-      rank.forEach(function (n, i) { n.rep = i < FMC.REPS; });
-      var reps = r.filter(function (n) { return n.rep; });
-      var gap = 104;
-      reps.forEach(function (n, j) { n.ox = W / 2 + (j - (reps.length - 1) / 2) * gap; });
-      r.forEach(function (n) { if (!n.rep) n.ox = W / 2; });
-    });
+  /* Layouts that fit the window at a readable size win, biggest icons first. If nothing fits
+     (a phone), take a comfortable width-fit size and let the view scroll vertically. */
+  function fmScore(Wm, Hm, vw, vh) {
+    var kw = vw / Wm, kh = vh / Hm, kfit = Math.min(kw, kh);
+    if (kfit >= FMC.KFLOOR) return { score: 100 + kfit, kstart: kfit };
+    var kc = Math.min(kw, 0.5);
+    return { score: kc * 10 - (Hm * kc) / 20000, kstart: Math.max(kc, FMC.KFLOOR) };
+  }
 
-    var gBands = svgEl('g'), gArcs = svgEl('g', { 'class': 'arcs' }), gBg = svgEl('g', { 'class': 'fm-bg', id: 'fm-bg' }), gHi = svgEl('g', { id: 'fm-hi' }), gNodes = svgEl('g');
-    LAYERS.forEach(function (L, i) {
-      var r = svgEl('rect', { x: 0, y: fmCY[i] - BAND / 2, width: W, height: BAND, rx: 22, 'class': 'band' });
-      setPal(r, i);
-      r.dataset.l = i;
-      gBands.appendChild(r);
+  /* ---------- layout: choose how to pack the zones for this window shape ---------- */
+  function fmCompute(vw, vh) {
+    var cnt = fmRows.map(function (r) { return r.length; }), CMIN = 3, CMAX = 14;
+    var ZMIN = ZONES.map(function (z, zi) {          /* narrowest column (in cells) that still shows every title in full */
+      var need = ((zi + 1) + '  ' + z.name).length * 36 * 0.62 + 44;
+      for (var l = z.a; l <= z.b; l++) need = Math.max(need, LAYERS[l].name.length * 28 * 0.6 + 96 + FMC.PADX);
+      return Math.min(CMAX, Math.max(CMIN, Math.ceil((need - 2 * FMC.PADX) / FMC.CW)));
     });
-    /* layer-to-layer arcs for the overview */
-    var pc = {};
-    NODES.forEach(function (n) { n.up.forEach(function (u) { var b = by[u].l; if (b !== n.l) { var key = n.l + '>' + b; pc[key] = (pc[key] || 0) + 1; } }); });
-    Object.keys(pc).sort(function (x, y) { return pc[y] - pc[x]; }).forEach(function (key) {
-      var c = pc[key]; if (c < 3) return;
-      var ab = key.split('>').map(Number), a = ab[0], b = ab[1];
-      var ya = fmCY[a], yb = fmCY[b], span = b - a, bulge = Math.min(FMC.ARC - 20, 46 + span * 34), x0 = W - 4;
-      var path = svgEl('path', { d: 'M' + x0 + ' ' + ya + 'C' + (x0 + bulge) + ' ' + (ya + (yb - ya) * 0.1) + ',' + (x0 + bulge) + ' ' + (yb - (yb - ya) * 0.1) + ',' + x0 + ' ' + yb, 'class': 'arc' });
-      setPal(path, a);
-      path.style.strokeWidth = Math.min(6.5, 0.9 + c * 0.28) + 'px';
-      path.dataset.tip = LAYERS[a].name + ' → ' + LAYERS[b].name + '|' + c + ' links: the first depends on the second.';
-      gArcs.appendChild(path);
+    var ZH = ZONES.map(function (z) {
+      var o = {};
+      for (var c = CMIN; c <= CMAX; c++) {
+        var h = FMC.ZHEAD + FMC.ZPADB + (z.b - z.a) * FMC.LGAP;
+        for (var l = z.a; l <= z.b; l++) h += FMC.LHEAD + Math.ceil(cnt[l] / c) * FMC.CH;
+        o[c] = h;
+      }
+      return o;
+    });
+    var best = null;
+    ARRS.forEach(function (arr, ai) {
+      var cols = arr.length, cpl = new Array(cols), cmin = arr.map(function (zs) { return Math.max.apply(null, zs.map(function (zi) { return ZMIN[zi]; })); });
+      function score() {
+        var W = (cols - 1) * FMC.ZGAP, H = 0, used = 0, i;
+        for (i = 0; i < cols; i++) {
+          var h = (arr[i].length - 1) * FMC.ZGAP;
+          arr[i].forEach(function (zi) { h += ZH[zi][cpl[i]]; });
+          var w = cpl[i] * FMC.CW + 2 * FMC.PADX;
+          W += w; H = Math.max(H, h); used += w * h;
+        }
+        var sc = fmScore(W + 2 * FMC.MARGIN, H + 2 * FMC.MARGIN, vw, vh);
+        var cost = -sc.score - 0.0004 * (used / (W * H));
+        if (!best || cost < best.cost) best = { cost: cost, ai: ai, cpl: cpl.slice(), W: W, H: H, kstart: sc.kstart };
+      }
+      (function rec(i) {
+        if (i === cols) { score(); return; }
+        for (var c = cmin[i]; c <= CMAX; c++) { cpl[i] = c; rec(i + 1); }
+      })(0);
+    });
+    return best;
+  }
+  function fmPlaceAll(best) {
+    var arr = ARRS[best.ai], x = FMC.MARGIN;
+    fmPos = { layers: [], zones: [] };
+    arr.forEach(function (zs, ci) {
+      var cpl = best.cpl[ci], w = cpl * FMC.CW + 2 * FMC.PADX, y = FMC.MARGIN;
+      zs.forEach(function (zi) {
+        var z = ZONES[zi], y0 = y, cy = y + FMC.ZHEAD;
+        for (var l = z.a; l <= z.b; l++) {
+          var n = fmRows[l].length, rows = Math.ceil(n / cpl), bh = FMC.LHEAD + rows * FMC.CH;
+          fmPos.layers[l] = { x: x + FMC.PADX / 2, y: cy, w: w - FMC.PADX, h: bh };
+          fmRows[l].forEach(function (nd, i) {
+            nd.fx = x + FMC.PADX + (i % cpl) * FMC.CW + FMC.CW / 2;
+            nd.fy = cy + FMC.LHEAD + Math.floor(i / cpl) * FMC.CH + FMC.R + 8;
+          });
+          cy += bh + FMC.LGAP;
+        }
+        var zh = cy - FMC.LGAP + FMC.ZPADB - y0;
+        fmPos.zones[zi] = { x: x, y: y0, w: w, h: zh };
+        y = y0 + zh + FMC.ZGAP;
+      });
+      x += w + FMC.ZGAP;
+    });
+    FM.W = best.W + 2 * FMC.MARGIN; FM.H = best.H + 2 * FMC.MARGIN; FM.kstart = best.kstart;
+    FM.sig = best.ai + ':' + best.cpl.join(',');
+  }
+  function fit(text, px, maxW) {          /* trim a title so it always fits its box */
+    var per = px * 0.58, max = Math.max(4, Math.floor(maxW / per));
+    return text.length > max ? text.slice(0, max - 1) + '…' : text;
+  }
+  function fmApply() {
+    ZONES.forEach(function (z, zi) {
+      var b = fmPos.zones[zi], e = fmZon[zi];
+      e.rect.setAttribute('x', b.x); e.rect.setAttribute('y', b.y); e.rect.setAttribute('width', b.w); e.rect.setAttribute('height', b.h);
+      e.title.setAttribute('x', b.x + 22); e.title.setAttribute('y', b.y + 54);
+      e.title.textContent = fit((zi + 1) + '  ' + z.name.toUpperCase(), 36, b.w - 44);
+    });
+    LAYERS.forEach(function (L, i) {
+      var b = fmPos.layers[i], e = fmLay[i];
+      e.rect.setAttribute('x', b.x); e.rect.setAttribute('y', b.y); e.rect.setAttribute('width', b.w); e.rect.setAttribute('height', b.h);
+      e.title.setAttribute('x', b.x + 16); e.title.setAttribute('y', b.y + 40);
+      e.title.textContent = fit(L.name, 28, b.w - 96);
+      e.count.setAttribute('x', b.x + b.w - 16); e.count.setAttribute('y', b.y + 40);
+    });
+    NODES.forEach(function (n) { fmNodes[n.id].setAttribute('transform', 'translate(' + n.fx + ',' + n.fy + ')'); });
+    if ($('#fm-bg').firstChild) fmBuildBg();
+  }
+  function fmRelayout(force) {
+    var p = fmPad();
+    if (!p.w || !p.h) return;
+    var best = fmCompute(p.w - 2 * FMC.SIDE, p.h - FMC.TOP - FMC.BOTTOM);
+    var sig = best.ai + ':' + best.cpl.join(',');
+    var wasFit = Math.abs(fmV.k - Math.max(FM.kstart || 0, FM.kmin)) < 0.002;
+    if (sig !== FM.sig || force) { fmPlaceAll(best); fmApply(); fmFitAll(false); apply(); return; }
+    var oldMin = FM.kmin;
+    FM.kfit = Math.min((p.w - 2 * FMC.SIDE) / FM.W, (p.h - FMC.TOP - FMC.BOTTOM) / FM.H); FM.kmin = Math.max(FM.kfit, FMC.KFLOOR);
+    FM.kstart = fmScore(FM.W, FM.H, p.w - 2 * FMC.SIDE, p.h - FMC.TOP - FMC.BOTTOM).kstart;
+    if (wasFit || fmV.k < FM.kmin) fmFitAll(false);
+    else fmSet(fmV.x, fmV.y, fmV.k);
+  }
+
+  function buildFM() {
+    var R = FMC.R;
+    fmRows = LAYERS.map(function () { return []; });
+    NODES.forEach(function (n) { fmRows[n.l].push(n); });
+    fmRows.forEach(function (r) {            /* best-connected first, so key names lead each row */
+      r.sort(function (a, b) {
+        var da = a.up.length + (down[a.id] || []).length + (a.c ? 3 : 0), db = b.up.length + (down[b.id] || []).length + (b.c ? 3 : 0);
+        return db - da || (a.n < b.n ? -1 : 1);
+      });
+    });
+    var gZones = svgEl('g'), gBg = svgEl('g', { 'class': 'fm-bg', id: 'fm-bg' }), gHi = svgEl('g', { id: 'fm-hi' }), gNodes = svgEl('g');
+    ZONES.forEach(function (z, zi) {
+      var g = svgEl('g', { 'class': 'zn' });
+      g.dataset.z = zi; g.dataset.tip = z.name + '|' + z.sub;
+      setZonePal(g, zi);
+      var rect = svgEl('rect', { 'class': 'zbox', rx: 30 });
+      var title = svgEl('text', { 'class': 'zt' });
+      g.appendChild(rect); g.appendChild(title);
+      gZones.appendChild(g);
+      fmZon[zi] = { rect: rect, title: title };
+    });
+    LAYERS.forEach(function (L, i) {
+      var g = svgEl('g', { 'class': 'ly' });
+      g.dataset.l = i; g.dataset.tip = L.name + ' (' + fmRows[i].length + ')|' + L.sub + ' Click to zoom in.';
+      setPal(g, i);
+      var rect = svgEl('rect', { 'class': 'band', rx: 20 });
+      var title = svgEl('text', { 'class': 'lt' });
+      var count = svgEl('text', { 'class': 'lc', 'text-anchor': 'end' }); count.textContent = fmRows[i].length;
+      g.appendChild(rect); g.appendChild(title); g.appendChild(count);
+      gZones.appendChild(g);
+      fmLay[i] = { rect: rect, title: title, count: count };
     });
     NODES.forEach(function (n) {
       var g = svgEl('g', { 'class': 'fn k-' + n.kind, tabindex: -1 });
-      g.style.transform = 'translate(' + n.fx + 'px,' + n.fy + 'px)';
       g.dataset.id = n.id;
       setPal(g, n.l);
       g.dataset.tip = n.n + (n.pq ? ' · ' + n.pq : '') + '|' + firstSentence(n.w);
@@ -752,36 +817,24 @@
           vis.insertBefore(ie, mono.nextSibling); mono.setAttribute('class', 'mono hide');
         });
       }
-      if (n.c) { var dm = svgEl('text', { 'class': 'dm', x: R - 4, y: -R + 8 }); dm.textContent = '◆'; vis.appendChild(dm); }
+      if (n.c) { var dm = svgEl('text', { 'class': 'dm', x: R - 5, y: -R + 9 }); dm.textContent = '◆'; vis.appendChild(dm); }
       g.appendChild(vis);
-      var nm = n.n.length > 15 ? n.n.slice(0, 14) + '…' : n.n;
-      var lbl = svgEl('text', { 'class': 'lbl', y: R + 20, 'text-anchor': 'middle' }); lbl.textContent = nm; g.appendChild(lbl);
+      /* name on up to two lines, each short enough for the cell */
+      var words = n.n.split(' '), l1 = '', l2 = '';
+      words.forEach(function (w) { if (!l2 && (l1 + ' ' + w).trim().length <= 14) l1 = (l1 + ' ' + w).trim(); else l2 = (l2 + ' ' + w).trim(); });
+      if (!l1) { l1 = l2.slice(0, 13); l2 = l2.slice(13); }
+      if (l1.length > 14) l1 = l1.slice(0, 13) + '…';
+      if (l2.length > 14) l2 = l2.slice(0, 13) + '…';
+      var t1 = svgEl('text', { 'class': 'lbl', y: R + 19, 'text-anchor': 'middle' }); t1.textContent = l1; g.appendChild(t1);
+      if (l2) { var t2 = svgEl('text', { 'class': 'lbl', y: R + 34, 'text-anchor': 'middle' }); t2.textContent = l2; g.appendChild(t2); }
       if (n.pq || n.kind === 'private') {
-        var tk = svgEl('text', { 'class': 'tk', y: R + 36, 'text-anchor': 'middle' }); tk.textContent = n.pq || 'Private'; g.appendChild(tk);
+        var tk = svgEl('text', { 'class': 'tk', y: R + (l2 ? 49 : 34), 'text-anchor': 'middle' }); tk.textContent = n.pq || 'Private'; g.appendChild(tk);
       }
       gNodes.appendChild(g);
       fmNodes[n.id] = g;
     });
-    fmVp.appendChild(gBands); fmVp.appendChild(gBg); fmVp.appendChild(gArcs); fmVp.appendChild(gHi); fmVp.appendChild(gNodes);
+    fmVp.appendChild(gZones); fmVp.appendChild(gBg); fmVp.appendChild(gHi); fmVp.appendChild(gNodes);
 
-    FM.chips = LAYERS.map(function (L, i) {
-      var c = el('button', 'rail-chip');
-      c.type = 'button';
-      setPal(c, i);
-      c.appendChild(el('b', null, String(i).padStart(2, '0')));
-      c.appendChild(el('span', 't', L.name));
-      c.appendChild(el('i', null, String(rows[i].length)));
-      c.dataset.tip = L.name + ' (' + rows[i].length + ')|' + L.sub + ' Click to zoom in.';
-      c.addEventListener('click', function () { fmFlyLayer(i); });
-      fmRail.appendChild(c);
-      return c;
-    });
-    FM.zlabels = ZONES.map(function (z) {
-      var d = el('div', 'rail-zone', z.name);
-      setZonePal(d, ZONES.indexOf(z)); d.dataset.tip = z.name + '|' + z.sub;
-      fmRail.appendChild(d);
-      return d;
-    });
     var jump = $('#fm-jump');
     LAYERS.forEach(function (L, i) { var o = el('option', null, String(i).padStart(2, '0') + ' · ' + L.name); o.value = i; jump.appendChild(o); });
     jump.addEventListener('change', function () { if (jump.value !== '') fmFlyLayer(+jump.value); jump.value = ''; });
@@ -799,9 +852,8 @@
       zoomAt(ev.clientX - r.left, ev.clientY - r.top, Math.exp(-ev.deltaY * (ev.ctrlKey ? 0.012 : 0.0016)));
     }, { passive: false });
     fmEl.addEventListener('pointerdown', function (ev) {
-      if (ev.target.closest('.fm-ui, .rail-chip')) return;
+      if (ev.target.closest('.fm-ui')) return;
       hideHint(); fmCancel();
-      fmEl.setPointerCapture(ev.pointerId);
       ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
       var ids = Object.keys(ptrs); moved = 0;
       if (ids.length === 2) { var a = ptrs[ids[0]], b = ptrs[ids[1]]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); }
@@ -810,7 +862,7 @@
     fmEl.addEventListener('pointermove', function (ev) {
       if (!ptrs[ev.pointerId]) return;
       var prev = ptrs[ev.pointerId];
-      ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+      ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY, cap: prev.cap };
       var ids = Object.keys(ptrs);
       if (ids.length >= 2) {
         var a = ptrs[ids[0]], b = ptrs[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y), r = fmEl.getBoundingClientRect();
@@ -820,7 +872,10 @@
       } else {
         var dx = ev.clientX - prev.x, dy = ev.clientY - prev.y;
         moved += Math.abs(dx) + Math.abs(dy);
-        if (moved > 5) fmSet(fmV.x + dx, fmV.y + dy, fmV.k);
+        if (moved > 5) {
+          if (!ptrs[ev.pointerId].cap) { try { fmEl.setPointerCapture(ev.pointerId); } catch (e) {} ptrs[ev.pointerId].cap = 1; }   /* capture only once it is a drag, so plain clicks still hit their target */
+          fmSet(fmV.x + dx, fmV.y + dy, fmV.k);
+        }
       }
     });
     function up(ev) {
@@ -833,12 +888,14 @@
       if (moved > 5) { moved = 0; return; }
       var g = ev.target.closest('.fn');
       if (g) { var id = g.dataset.id; if (state.sel === id) clearSel(); else select(id); return; }
-      var band = ev.target.closest('.band');
-      if (band && fmV.k < 0.5) { fmFlyLayer(+band.dataset.l); return; }
-      if (state.sel && !ev.target.closest('.fm-ui, .rail-chip')) clearSel();
+      var ly = ev.target.closest('.ly');
+      if (ly && fmV.k < 0.95) { fmFlyLayer(+ly.dataset.l); return; }
+      var zn = ev.target.closest('.zn');
+      if (zn && fmV.k < FM.kmin * 1.5) { fmFlyZone(+zn.dataset.z); return; }
+      if (state.sel && !ev.target.closest('.fm-ui')) clearSel();
     });
     fmEl.addEventListener('dblclick', function (ev) {
-      if (ev.target.closest('.fm-ui, .rail-chip, .fn')) return;
+      if (ev.target.closest('.fm-ui, .fn')) return;
       var r = fmEl.getBoundingClientRect(); fmCancel();
       fmFlyCenter((ev.clientX - r.left - fmV.x) / fmV.k, (ev.clientY - r.top - fmV.y) / fmV.k, fmV.k * 2.2, 450);
     });
@@ -856,21 +913,17 @@
       this.setAttribute('aria-pressed', String(on));
       if (on) fmBuildBg();
     });
-    window.addEventListener('resize', function () { if (state.mode === 'map') fmRailUpdate(); });
+    var rt = 0;
+    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (state.mode === 'map' && FM.ready) fmRelayout(); }, 140); });
 
-    fmSvg.classList.add('noanim');
     FM.ready = true;
-    fmFitAll(false);
-    FM.compact = null;
-    fmPlace(FM.zc === 'z0');
-    requestAnimationFrame(function () { requestAnimationFrame(function () { fmSvg.classList.remove('noanim'); }); });
+    fmRelayout(true);
   }
 
   var FM_CLASSES = ['sel', 'sup', 'cus', 'dim', 'jn', 'off'];
   function fmUpdate(cls, edges, active) {
     if (!FM.ready) return;
     FM.active = !!active;
-    fmPlace(FM.zc === 'z0' && !FM.active);
     NODES.forEach(function (n) {
       var g = fmNodes[n.id];
       FM_CLASSES.forEach(function (c) { g.classList.remove(c); });
@@ -894,9 +947,8 @@
       if (!FM.ready) buildFM();
       if (!noScroll) window.scrollTo({ top: $('#map-top').offsetTop, behavior: 'auto' });
       requestAnimationFrame(function () {
-        if (state.sel) fmFocus(state.sel);
-        else if (mq.matches) fmSet(fmEl.clientWidth / 2 - (FMC.W / 2) * 0.27, 14, 0.27);
-        else fmFitAll(false);
+        fmRelayout();
+        if (state.sel) fmFocus(state.sel); else fmFitAll(false);
         apply();
       });
     } else {

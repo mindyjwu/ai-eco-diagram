@@ -567,7 +567,7 @@
      appear once they are big enough to read.
      ============================================================ */
   var FM = { ready: false, zc: '', active: false, sig: '', kfit: 0.3, kmin: 0.3 };
-  var FMC = { CW: 118, CH: 112, R: 27, PADX: 16, LHEAD: 60, LGAP: 12, ZHEAD: 84, ZPADB: 14, ZGAP: 40, MARGIN: 30, KFLOOR: 0.24, TOP: 12, BOTTOM: 66, SIDE: 12 };
+  var FMC = { CW: 106, CH: 122, R: 34, PADX: 16, LHEAD: 60, LGAP: 12, ZHEAD: 84, ZPADB: 14, ZGAP: 40, MARGIN: 30, KFLOOR: 0.2, TOP: 12, BOTTOM: 66, SIDE: 12 };
   /* ways to arrange zones [0 demand, 1 AI, 2 physical, 3 chips, 4 frontier] into columns */
   var ARRS = [
     [[0], [1], [2], [3], [4]], [[0], [1, 4], [2], [3]], [[0], [1, 2], [3, 4]], [[0], [1, 2, 4], [3]],
@@ -806,7 +806,7 @@
       var vis = svgEl('g', { 'class': 'vis' });
       vis.appendChild(svgEl('circle', { r: R, 'class': 'c' }));
       var mono = svgEl('text', { 'class': 'mono', y: 6, 'text-anchor': 'middle' });
-      if (n.e) { mono.textContent = n.e; mono.setAttribute('class', 'mono emo'); mono.setAttribute('y', 10); }
+      if (n.e) { mono.textContent = n.e; mono.setAttribute('class', 'mono emo'); mono.setAttribute('y', 13); g.classList.add('haslogo'); }
       else mono.textContent = n.n.replace(/[^A-Za-z0-9 ]/g, '').split(' ').slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase();
       vis.appendChild(mono);
       if (n.d && !n.e) {
@@ -821,14 +821,14 @@
       g.appendChild(vis);
       /* name on up to two lines, each short enough for the cell */
       var words = n.n.split(' '), l1 = '', l2 = '';
-      words.forEach(function (w) { if (!l2 && (l1 + ' ' + w).trim().length <= 14) l1 = (l1 + ' ' + w).trim(); else l2 = (l2 + ' ' + w).trim(); });
-      if (!l1) { l1 = l2.slice(0, 13); l2 = l2.slice(13); }
-      if (l1.length > 14) l1 = l1.slice(0, 13) + '…';
-      if (l2.length > 14) l2 = l2.slice(0, 13) + '…';
-      var t1 = svgEl('text', { 'class': 'lbl', y: R + 19, 'text-anchor': 'middle' }); t1.textContent = l1; g.appendChild(t1);
-      if (l2) { var t2 = svgEl('text', { 'class': 'lbl', y: R + 34, 'text-anchor': 'middle' }); t2.textContent = l2; g.appendChild(t2); }
+      words.forEach(function (w) { if (!l2 && (l1 + ' ' + w).trim().length <= 12) l1 = (l1 + ' ' + w).trim(); else l2 = (l2 + ' ' + w).trim(); });
+      if (!l1) { l1 = l2.slice(0, 11); l2 = l2.slice(11); }
+      if (l1.length > 12) l1 = l1.slice(0, 11) + '…';
+      if (l2.length > 12) l2 = l2.slice(0, 11) + '…';
+      var t1 = svgEl('text', { 'class': 'lbl', y: R + 16, 'text-anchor': 'middle' }); t1.textContent = l1; g.appendChild(t1);
+      if (l2) { var t2 = svgEl('text', { 'class': 'lbl', y: R + 30, 'text-anchor': 'middle' }); t2.textContent = l2; g.appendChild(t2); }
       if (n.pq || n.kind === 'private') {
-        var tk = svgEl('text', { 'class': 'tk', y: R + (l2 ? 49 : 34), 'text-anchor': 'middle' }); tk.textContent = n.pq || 'Private'; g.appendChild(tk);
+        var tk = svgEl('text', { 'class': 'tk', y: R + (l2 ? 44 : 30), 'text-anchor': 'middle' }); tk.textContent = n.pq || 'Private'; g.appendChild(tk);
       }
       gNodes.appendChild(g);
       fmNodes[n.id] = g;

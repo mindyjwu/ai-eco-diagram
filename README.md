@@ -1,6 +1,6 @@
-# AI Eco Diagram — The AI Money Map
+# The AI Ecosystem
 
-An interactive supply chain of who funds AI: 26 layers and ~320 players, from the things households actually spend on and consume (Amazon orders and recommendations, social and video feeds, food and restaurants, travel, education, gig and freelance work, banking and payments, health, payroll and work software, smart homes, cars) down through AI labs, clouds, capital, data-centre gear, energy, servers, chip designers, fabs, equipment, materials and space, to raw quartz and copper.
+An interactive map of the current AI ecosystem: 26 layers and ~320 players, from what people spend on (shopping, feeds, food, travel, education, gig work, payments, health, work) through labs, clouds, capital, data centres, energy, chips, fabs and equipment, down to space and raw materials.
 
 Part of [Mindy's portfolio](https://mindy-portfolio.vercel.app).
 

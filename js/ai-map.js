@@ -118,24 +118,46 @@
   var state = { sel: null, hover: null, lens: 'all', query: '', depth: 'full', journey: null, mode: 'layers' };
   var nodeEls = {};
 
+  /* ---------- colour: one hue per zone, a muted shade per layer ---------- */
+  var ZONES = D.ZONES, zoneOf = [];
+  ZONES.forEach(function (z, zi) {
+    z.a = LAYERS.findIndex(function (L) { return L.id === z.from; });
+    z.b = LAYERS.findIndex(function (L) { return L.id === z.to; });
+    for (var i = z.a; i <= z.b; i++) zoneOf[i] = zi;
+  });
+  function setPal(el, layer) {
+    var z = ZONES[zoneOf[layer]], n = z.b - z.a, t = n ? (layer - z.a) / n : 0.5;
+    el.style.setProperty('--h', z.h);
+    el.style.setProperty('--s', '34%');
+    el.style.setProperty('--l', Math.round(40 + t * 13) + '%');
+  }
+  function setZonePal(el, zi) {
+    el.style.setProperty('--h', ZONES[zi].h);
+    el.style.setProperty('--s', '34%');
+    el.style.setProperty('--l', '44%');
+  }
+  /* first sentence, for tooltips and the short form of panel text */
+  function firstSentence(t) { var m = /^(.+?[.!?])(\s|$)/.exec(t || ''); return m ? m[1] : (t || ''); }
+  function annotate(root) { if (window.AITip) window.AITip.annotate(root); }
+
   /* ---------- build the layers ---------- */
   var layersRoot = $('#layers');
   LAYERS.forEach(function (L, i) {
     var sec = el('section', 'layer');
     sec.id = 'layer-' + L.id;
     sec.dataset.l = i;
-    sec.style.setProperty('--h', L.h);
+    setPal(sec, i);
     var head = el('header', 'layer-h');
     var num = el('span', 'layer-n', String(i).padStart(2, '0'));
     var t = el('div', 'layer-t');
-    t.appendChild(el('h2', null, L.name));
+    var h2 = el('h2', null, L.name); h2.dataset.tip = L.name + '|' + L.sub + ' ' + L.take; t.appendChild(h2);
     t.appendChild(el('p', 'layer-sub', L.sub));
     head.appendChild(num); head.appendChild(t);
     var info = el('details', 'layer-info');
-    var sum = el('summary', null, 'What to know at this layer');
+    var sum = el('summary', null, 'More');
     info.appendChild(sum);
-    var b1 = el('p'); var s1 = el('strong', null, 'Entry-level take. '); b1.appendChild(s1); b1.appendChild(document.createTextNode(L.take));
-    var b2 = el('p'); var s2 = el('strong', null, 'Builder’s angle. '); b2.appendChild(s2); b2.appendChild(document.createTextNode(L.build));
+    var b1 = el('p'); var s1 = el('strong', null, 'Take. '); b1.appendChild(s1); b1.appendChild(document.createTextNode(L.take));
+    var b2 = el('p'); var s2 = el('strong', null, 'Build. '); b2.appendChild(s2); b2.appendChild(document.createTextNode(L.build));
     info.appendChild(b1); info.appendChild(b2);
     t.appendChild(info);
     var grid = el('div', 'nodes');
@@ -143,17 +165,19 @@
       var b = el('button', 'node k-' + n.kind);
       b.type = 'button';
       b.dataset.id = n.id;
+      b.dataset.tip = n.n + (n.pq ? ' · ' + n.pq : '') + '|' + firstSentence(n.w);
       b.setAttribute('aria-label', n.n + (n.pq ? ', ' + n.pq : '') + (n.c ? ', chokepoint' : ''));
       b.appendChild(logo(n, 'm'));
       b.appendChild(el('span', 'node-n', n.n));
       var sub = n.kind === 'public' ? n.pq : n.kind === 'private' ? 'Private' : n.kind === 'life' ? '' : (n.kind === 'other' ? '' : '');
       if (sub) b.appendChild(el('span', 'node-t', sub));
-      if (n.c) { var c = el('span', 'node-c', '◆'); c.title = 'Chokepoint: hard to replace'; b.appendChild(c); }
+      if (n.c) { var c = el('span', 'node-c', '◆'); b.appendChild(c); }
       grid.appendChild(b);
       nodeEls[n.id] = b;
     });
     sec.appendChild(head);
     sec.appendChild(grid);
+    annotate(t);
     layersRoot.appendChild(sec);
     if (i < LAYERS.length - 1) {
       var flow = el('div', 'flow');
@@ -283,11 +307,25 @@
     s.appendChild(bodyNode);
     return s;
   }
-  function para(text) { return el('p', null, text); }
+  /* one sentence by default, with a More toggle for the rest */
+  function para(text, extra) {
+    var wrap = el('div', 'short');
+    var first = firstSentence(text), rest = (text || '').slice(first.length).trim();
+    wrap.appendChild(el('p', null, first));
+    if (rest || extra) {
+      var more = el('div', 'rest'); more.hidden = true;
+      if (rest) more.appendChild(el('p', null, rest));
+      if (extra) more.appendChild(extra);
+      var btn = el('button', 'more', 'More'); btn.type = 'button';
+      btn.addEventListener('click', function () { more.hidden = !more.hidden; btn.textContent = more.hidden ? 'More' : 'Less'; annotate(more); });
+      wrap.appendChild(btn); wrap.appendChild(more);
+    }
+    return wrap;
+  }
   function renderPanel(id) {
     var n = by[id], L = LAYERS[n.l];
     pbody.textContent = '';
-    pbody.style.setProperty('--h', L.h);
+    setPal(pbody, n.l);
     var head = el('div', 'p-head');
     head.appendChild(logo(n, 'l'));
     var ht = el('div', 'p-ht');
@@ -303,22 +341,13 @@
     head.appendChild(ht);
     pbody.appendChild(head);
 
-    pbody.appendChild(section('What they do', para(n.w)));
-    pbody.appendChild(section('Why they matter', para(n.y)));
-    if (n.p) {
-      var pb = el('div');
-      pb.appendChild(para(n.p));
-      pb.appendChild(el('p', 'fine', 'Qualitative, from my knowledge to roughly mid-2026. Not live data — use the quote link for current figures.'));
-      pbody.appendChild(section('How they’re doing', pb));
-    }
-    var ob = el('div');
-    ob.appendChild(para(n.o || L.take));
-    var bp = el('p', 'angle'); bp.appendChild(el('strong', null, 'Builder’s angle. ')); bp.appendChild(document.createTextNode(L.build));
-    ob.appendChild(bp);
-    pbody.appendChild(section('Where the opportunity is', ob));
-
-    pbody.appendChild(section('Who they depend on (one step down)', chipList(n.up, 'Nothing mapped below: they sit at the bottom of this chain.')));
-    pbody.appendChild(section('Who depends on them (one step up)', chipList(down[id] || [], 'Nothing mapped above: they sit at the top of this chain.')));
+    pbody.appendChild(section('What it does', para(n.w)));
+    pbody.appendChild(section('Why it matters', para(n.y)));
+    if (n.p) pbody.appendChild(section('Outlook', para(n.p + ' (Qualitative, to about mid-2026; not live data.)')));
+    var bp = el('p', 'angle'); bp.appendChild(el('strong', null, 'Build. ')); bp.appendChild(document.createTextNode(L.build));
+    pbody.appendChild(section('Opportunity', para(n.o || L.take, bp)));
+    pbody.appendChild(section('Depends on', chipList(n.up, 'Nothing mapped below.')));
+    pbody.appendChild(section('Used by', chipList(down[id] || [], 'Nothing mapped above.')));
 
     var links = el('div', 'p-links');
     if (n.d) { var a = el('a', null, 'Website ↗'); a.href = 'https://' + n.d; a.target = '_blank'; a.rel = 'noopener'; links.appendChild(a); }
@@ -331,7 +360,8 @@
     });
     links.appendChild(sh);
     pbody.appendChild(links);
-    pbody.appendChild(el('p', 'fine', 'Educational, not investment advice. Lines on the map show typical, publicly known relationships, simplified.'));
+    pbody.appendChild(el('p', 'fine', 'Educational, not investment advice. Links are typical relationships, simplified.'));
+    annotate(pbody);
     pbody.scrollTop = 0;
   }
   function openPanel(id) {
@@ -529,14 +559,6 @@
      ============================================================ */
   var FM = { ready: false, zc: '', compact: null, active: false };
   var FMC = { W: 2800, ARC: 560, ROW: 128, BAND: 108, R: 28, ZGAP: 84, REPS: 8 };
-  var ZONES = [
-    { name: 'You: what you spend, consume & earn', from: 'you', to: 'edu', h: 18 },
-    { name: 'AI products & the money behind them', from: 'devices', to: 'capital', h: 262 },
-    { name: 'Physical buildout: buildings, power & food', from: 'dc', to: 'agri', h: 75 },
-    { name: 'The chip supply chain', from: 'systems', to: 'materials', h: 280 },
-    { name: 'Frontier & Earth', from: 'space', to: 'raw', h: 120 }
-  ];
-  var SHORT = { you: 'You', shop: 'Shopping & delivery', social: 'Social, video & search', work: 'Work & payroll', gig: 'Gig & freelance', money: 'Money & payments', health: 'Health & care', food: 'Food & restaurants', travel: 'Travel & stays', edu: 'Education', devices: 'Devices, cars & home', labs: 'AI labs', cloud: 'Cloud & compute', capital: 'Capital & financing', dc: 'Data centres', energy: 'Energy & grid', agri: 'Farming & food supply', systems: 'Servers & networking', chips: 'Chip designers', fabs: 'Fabs & memory', equip: 'Chip equipment', parts: 'Tiny parts', materials: 'Materials', space: 'Space', rocket: 'Aerospace & rockets', raw: 'Raw earth' };
   var fmEl = $('#fullmap'), fmSvg = $('#fm-svg'), fmVp = $('#fm-vp'), fmRail = $('#fm-rail');
   var fmV = { x: 0, y: 0, k: 0.2 }, fmFly = 0, fmNodes = {}, fmZoneOf = [], fmCY = [];
 
@@ -647,7 +669,7 @@
     NODES.forEach(function (n) {
       n.up.forEach(function (u) {
         var p = svgEl('path', { d: fmPath(n, by[u]), 'class': 'be' });
-        p.style.setProperty('--h', LAYERS[n.l].h);
+        setPal(p, n.l);
         g.appendChild(p);
       });
     });
@@ -685,7 +707,7 @@
     var gBands = svgEl('g'), gArcs = svgEl('g', { 'class': 'arcs' }), gBg = svgEl('g', { 'class': 'fm-bg', id: 'fm-bg' }), gHi = svgEl('g', { id: 'fm-hi' }), gNodes = svgEl('g');
     LAYERS.forEach(function (L, i) {
       var r = svgEl('rect', { x: 0, y: fmCY[i] - BAND / 2, width: W, height: BAND, rx: 22, 'class': 'band' });
-      r.style.setProperty('--h', L.h);
+      setPal(r, i);
       r.dataset.l = i;
       gBands.appendChild(r);
     });
@@ -697,17 +719,17 @@
       var ab = key.split('>').map(Number), a = ab[0], b = ab[1];
       var ya = fmCY[a], yb = fmCY[b], span = b - a, bulge = Math.min(FMC.ARC - 20, 46 + span * 34), x0 = W - 4;
       var path = svgEl('path', { d: 'M' + x0 + ' ' + ya + 'C' + (x0 + bulge) + ' ' + (ya + (yb - ya) * 0.1) + ',' + (x0 + bulge) + ' ' + (yb - (yb - ya) * 0.1) + ',' + x0 + ' ' + yb, 'class': 'arc' });
-      path.style.setProperty('--h', LAYERS[a].h);
+      setPal(path, a);
       path.style.strokeWidth = Math.min(6.5, 0.9 + c * 0.28) + 'px';
-      var t = svgEl('title'); t.textContent = SHORT[LAYERS[a].id] + ' → ' + SHORT[LAYERS[b].id] + ': ' + c + ' links'; path.appendChild(t);
+      path.dataset.tip = LAYERS[a].name + ' → ' + LAYERS[b].name + '|' + c + ' links: the first depends on the second.';
       gArcs.appendChild(path);
     });
     NODES.forEach(function (n) {
       var g = svgEl('g', { 'class': 'fn k-' + n.kind, tabindex: -1 });
       g.style.transform = 'translate(' + n.fx + 'px,' + n.fy + 'px)';
       g.dataset.id = n.id;
-      g.style.setProperty('--h', LAYERS[n.l].h);
-      var t = svgEl('title'); t.textContent = n.n + (n.pq ? ' (' + n.pq + ')' : ''); g.appendChild(t);
+      setPal(g, n.l);
+      g.dataset.tip = n.n + (n.pq ? ' · ' + n.pq : '') + '|' + firstSentence(n.w);
       var vis = svgEl('g', { 'class': 'vis' });
       vis.appendChild(svgEl('circle', { r: R, 'class': 'c' }));
       var mono = svgEl('text', { 'class': 'mono', y: 6, 'text-anchor': 'middle' });
@@ -737,18 +759,18 @@
     FM.chips = LAYERS.map(function (L, i) {
       var c = el('button', 'rail-chip');
       c.type = 'button';
-      c.style.setProperty('--h', L.h);
+      setPal(c, i);
       c.appendChild(el('b', null, String(i).padStart(2, '0')));
-      c.appendChild(el('span', 't', SHORT[L.id]));
+      c.appendChild(el('span', 't', L.name));
       c.appendChild(el('i', null, String(rows[i].length)));
-      c.title = L.name + ' — ' + rows[i].length + ' players. Click to zoom in.';
+      c.dataset.tip = L.name + ' (' + rows[i].length + ')|' + L.sub + ' Click to zoom in.';
       c.addEventListener('click', function () { fmFlyLayer(i); });
       fmRail.appendChild(c);
       return c;
     });
     FM.zlabels = ZONES.map(function (z) {
       var d = el('div', 'rail-zone', z.name);
-      d.style.setProperty('--h', z.h);
+      setZonePal(d, ZONES.indexOf(z)); d.dataset.tip = z.name + '|' + z.sub;
       fmRail.appendChild(d);
       return d;
     });

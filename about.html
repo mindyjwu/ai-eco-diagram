@@ -11,8 +11,8 @@
       document.documentElement.dataset.mwTheme = t;
     })();
   </script>
-  <title>About · The AI Money Map</title>
-  <meta name="description" content="Who actually pays for AI? What the AI Money Map is, how to read it, the guided journeys, and the caveats.">
+  <title>About · The AI Ecosystem</title>
+  <meta name="description" content="Who actually pays for AI? What the AI Ecosystem map is, how to read it, guided journeys and caveats.">
   <meta name="author" content="Mindy Wu">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -62,6 +62,12 @@
     .pushline { margin: 3rem 0 0; padding: 22px 24px; border-radius: 18px; background: var(--ink); color: var(--bg); font-family: 'Fraunces', serif; font-size: clamp(18px, 2.6vw, 24px); line-height: 1.35; }
     .prose p { max-width: 70ch; color: var(--ink-soft); }
     .prose p + p { margin-top: .8rem; }
+    #aitip { position: fixed; z-index: 200; max-width: 300px; padding: 9px 12px; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 13px; line-height: 1.45; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); pointer-events: none; }
+    #aitip[hidden] { display: none; }
+    #aitip b { display: block; font-size: 12.5px; margin-bottom: 2px; }
+    #aitip span { opacity: .9; }
+    .term { border-bottom: 1px dotted var(--muted); cursor: help; }
+    .term:hover, .term:focus-visible { border-bottom-color: var(--accent); color: var(--accent); outline: none; }
     footer { padding: 36px 0 80px; color: var(--muted); font-size: 13px; }
   </style>
 </head>
@@ -69,7 +75,7 @@
 
 <header class="bar">
   <div class="wrap">
-    <a class="brand" href="index.html">AI Money Map<span>by Mindy Wu</span></a>
+    <a class="brand" href="index.html">The AI Ecosystem<span>by Mindy Wu</span></a>
     <span class="sp"></span>
     <a class="btn sm" href="index.html">Open the map &rarr;</a>
     <button class="theme" id="theme" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
@@ -80,12 +86,12 @@
 </header>
 
 <main class="wrap">
-  <div class="eyebrow">About the AI Money Map</div>
+  <div class="eyebrow">About the AI Ecosystem</div>
   <h1>Who actually pays for <em>AI?</em></h1>
-  <p class="lede">You do, a few dollars at a time. Your Amazon orders, your feed, your meals, your trips, your classes, your paycheck, your side hustle, your doctor and your chatbot all run on AI. This map follows that money down through platforms, labs, clouds, chips, factories, power plants and rockets, to a quartz mine in North Carolina, so you can see the whole ecosystem and where you might fit in it.</p>
+  <p class="lede">You do, a few dollars at a time. Shopping, feeds, meals, trips, classes, paychecks, doctors and chatbots all run on AI. This map follows that money down through labs, clouds, chips, factories, power and rockets to a quartz mine in North Carolina.</p>
   <div class="cta">
     <a class="btn" href="index.html">Open the map &rarr;</a>
-    <span class="muted">Zoomable, with every company and every link.</span>
+    <span class="muted">Zoomable, with every company and link.</span>
   </div>
   <div class="stats">
     <div class="stat"><b id="st-layers">0</b><span>layers</span></div>
@@ -96,36 +102,37 @@
 
   <h2>How to read it</h2>
   <div class="grid">
-    <div class="card"><b>1 &middot; Start from the overview</b>26 layers sit in five zones, from what you spend and consume at the top to raw materials at the bottom. Each row shows its best-connected logos, and the arcs on the right show how many links run between layers.</div>
-    <div class="card"><b>2 &middot; Zoom to open a layer</b>Scroll or pinch, or click a layer chip. The row spreads out to every company, then shows names and tickers as you zoom closer.</div>
-    <div class="card"><b>3 &middot; Click a company</b>A panel shows what it makes, how it&rsquo;s doing and where the opportunity is. <span><span class="key c"></span>Amber lines: who depends on it. <span class="key s"></span>Teal: what it depends on. Dashes move the way money flows.</span></div>
-    <div class="card"><b>4 &middot; Use the lenses</b>Filter to public stocks, private companies, &#9670; chokepoints (parts the world can&rsquo;t easily replace) or non-company items. Press <b style="display:inline">/</b> to search.</div>
+    <div class="card"><b>1 &middot; Start wide</b>26 layers in five colour-coded zones, from what people spend at the top to raw materials at the bottom. Arcs show links between layers.</div>
+    <div class="card"><b>2 &middot; Zoom in</b>Scroll, pinch or click a layer. The row opens to every company, then names and tickers.</div>
+    <div class="card"><b>3 &middot; Click a company</b>See what it does and the opportunity. <span class="key c"></span>Amber: used by. <span class="key s"></span>Teal: depends on.</div>
+    <div class="card"><b>4 &middot; Hover for help</b>Dotted terms and layer names explain themselves. Use the lenses to filter to public, private or &#9670; chokepoints. Press <b style="display:inline">/</b> to search.</div>
   </div>
 
   <h2>Guided journeys</h2>
-  <p class="muted" style="margin-bottom:.9rem">Follow one everyday thing all the way down the chain.</p>
+  <p class="muted" style="margin-bottom:.9rem">Follow one everyday thing all the way down.</p>
   <div class="grid" id="journeys"></div>
 
   <h2>Four ways into this map</h2>
   <div class="grid">
-    <a class="card" href="index.html#lens=public"><h3>Own a piece</h3>Public companies show up with a ticker and a live-quote link. Think about which layer you understand best, and whether you are paying for a chokepoint or just a story.<em>Show public stocks &rarr;</em></a>
-    <a class="card" href="index.html#lens=choke"><h3>Work inside it</h3>Fabs, power, cooling and grid construction are short of skilled people. Chip design, ML and infrastructure roles sit across every layer.<em>Show chokepoints &rarr;</em></a>
-    <a class="card" href="index.html#lens=private"><h3>Build on it</h3>Every layer has a &ldquo;builder&rsquo;s angle&rdquo; in the Layers view. Private companies are your potential partners, customers or competitors.<em>Show private companies &rarr;</em></a>
-    <a class="card" href="index.html#lens=other"><h3>Finance or govern it</h3>Datacentres run on private credit and sovereign money, and the bottom of the chain is shaped by export controls and mining policy.<em>Show other items &rarr;</em></a>
+    <a class="card" href="index.html#lens=public"><h3>Own a piece</h3>Public companies carry a ticker and quote link. Know which layer you understand, and whether you pay for a chokepoint or a story.<em>Show public stocks &rarr;</em></a>
+    <a class="card" href="index.html#lens=choke"><h3>Work inside it</h3>Fabs, power, cooling and grid building are short of skilled people. Chip, ML and infrastructure roles span every layer.<em>Show chokepoints &rarr;</em></a>
+    <a class="card" href="index.html#lens=private"><h3>Build on it</h3>Each layer has a build angle. Private companies are potential partners, customers or competitors.<em>Show private companies &rarr;</em></a>
+    <a class="card" href="index.html#lens=other"><h3>Finance or govern it</h3>Data centres run on private credit and sovereign money, and the bottom of the chain is shaped by export controls.<em>Show other items &rarr;</em></a>
   </div>
 
-  <p class="pushline">Every layer on this map was once someone&rsquo;s bold bet. A food company ended up holding the key film inside AI chips. A rocket company rewrote launch costs. The next one could be yours: be ambitious, be curious, and look for the layer others are ignoring.</p>
+  <p class="pushline">Every layer here began as someone’s bold bet: a food company holds the key film inside AI chips; a rocket company rewrote launch costs. Be ambitious, be curious, and look for the layer others ignore.</p>
 
   <h2>Caveats</h2>
   <div class="prose">
-    <p><strong>Educational, not investment advice.</strong> Descriptions reflect my knowledge to roughly mid-2026 and some details will have moved. &ldquo;How they&rsquo;re doing&rdquo; is qualitative on purpose; use the live-quote and website links in each company&rsquo;s panel before acting on anything.</p>
-    <p>Lines show typical, publicly known relationships, simplified. They are not a list of contracts and some are indicative. Logos are fetched from each company&rsquo;s own website; trademarks belong to their owners.</p>
-    <p>Spot an error or a missing company? Tell me and I&rsquo;ll add it. The Layers view on the map has the same data as a scrollable list, which is also the keyboard-friendly way to explore it.</p>
+    <p><strong>Educational, not investment advice.</strong> Facts are to about mid-2026 and some will have moved. Outlooks are qualitative; use each panel&rsquo;s quote link for current figures.</p>
+    <p>Links are typical, publicly known relationships, simplified, not a list of contracts. Logos come from each company&rsquo;s own site; trademarks belong to their owners.</p>
+    <p>Spot an error or a missing company? Tell me and I&rsquo;ll add it.</p>
   </div>
 
   <footer>Built by <a href="https://mindy-portfolio.vercel.app">Mindy Wu</a> &middot; <a href="https://github.com/mindyjwu/ai-eco-diagram">Source</a></footer>
 </main>
 
+<script src="js/ai-tip.js"></script>
 <script src="js/ai-map-data.js"></script>
 <script>
   (function () {
@@ -144,6 +151,7 @@
       var e = document.createElement('em'); e.textContent = j.steps.length + ' steps →';
       a.appendChild(b); a.appendChild(p); a.appendChild(e); box.appendChild(a);
     });
+    window.AITip.annotate(document.querySelector('main'));
     $('theme').addEventListener('click', function () {
       var t = document.documentElement.dataset.mwTheme === 'dark' ? 'light' : 'dark';
       document.documentElement.dataset.mwTheme = t;

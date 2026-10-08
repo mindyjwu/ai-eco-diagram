@@ -104,11 +104,11 @@
     .node.sel.off, .node.sup.off, .node.cus.off { opacity: .5; }
 
     /* logos */
-    .lg { position: relative; display: inline-grid; place-items: center; background: #fff; border: 1px solid rgba(22,35,46,.1); flex-shrink: 0; overflow: hidden; }
+    .lg { position: relative; display: inline-grid; place-items: center; background: transparent; border: 0; flex-shrink: 0; overflow: hidden; }
     .lg-m { width: 44px; height: 44px; border-radius: 12px; }
     .lg-s { width: 22px; height: 22px; border-radius: 6px; }
     .lg-l { width: 60px; height: 60px; border-radius: 16px; }
-    .lg img { width: 78%; height: 78%; object-fit: contain; }
+    .lg img { width: 100%; height: 100%; object-fit: contain; }
     .lg-mono { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; color: #3E5A6E; }
     .lg-s .lg-mono { font-size: 9px; } .lg-l .lg-mono { font-size: 21px; }
     .lg-emoji { background: transparent; border-color: transparent; font-size: 26px; }
@@ -250,6 +250,9 @@
     .fn .mono.emo { font-size: 28px; }
     .fn .mono.hide { display: none; }
     .fn .lgo { pointer-events: none; }
+    html[data-mw-theme="dark"] .fn .lgo, html[data-mw-theme="dark"] .lg img { filter: drop-shadow(0 0 1.5px rgba(255,255,255,.55)); }
+    .fn.haslogo .c { fill: transparent; stroke: transparent; }
+    .fn.haslogo.sel .c, .fn.haslogo.sup .c, .fn.haslogo.cus .c, .fn.haslogo.jn .c { fill: transparent; }
     .fn .lbl { font: 700 13.5px 'DM Sans', sans-serif; fill: var(--ink); display: none; pointer-events: none; }
     .fn .tk { font: 500 11px 'JetBrains Mono', monospace; fill: var(--muted); display: none; pointer-events: none; }
     .fn .dm { font-size: 14px; fill: var(--cus); pointer-events: none; }

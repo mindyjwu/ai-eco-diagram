@@ -812,9 +812,9 @@
       if (n.d && !n.e) {
         findLogo(n.d).then(function (u) {
           if (!u) return;
-          var ie = svgEl('image', { x: -R * 0.62, y: -R * 0.62, width: R * 1.24, height: R * 1.24, 'class': 'lgo', preserveAspectRatio: 'xMidYMid meet' });
+          var ie = svgEl('image', { x: -R * 0.9, y: -R * 0.9, width: R * 1.8, height: R * 1.8, 'class': 'lgo', preserveAspectRatio: 'xMidYMid meet' });
           ie.setAttributeNS('http://www.w3.org/1999/xlink', 'href', u); ie.setAttribute('href', u);
-          vis.insertBefore(ie, mono.nextSibling); mono.setAttribute('class', 'mono hide');
+          vis.insertBefore(ie, mono.nextSibling); mono.setAttribute('class', 'mono hide'); g.classList.add('haslogo');
         });
       }
       if (n.c) { var dm = svgEl('text', { 'class': 'dm', x: R - 5, y: -R + 9 }); dm.textContent = '◆'; vis.appendChild(dm); }

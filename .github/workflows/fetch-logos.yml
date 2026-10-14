@@ -40,6 +40,11 @@ jobs:
       - name: Download logos
         run: node scripts/fetch-logos.mjs ${{ inputs.force && '--force' || '' }}
 
+      - name: Make logos transparent PNGs
+        run: |
+          pip install --quiet pillow
+          python3 scripts/clean-logos.py
+
       - name: Commit any new or updated logos
         run: |
           if [ -z "$(git status --porcelain assets/logos)" ]; then

@@ -1,6 +1,6 @@
 # The AI Ecosystem
 
-An interactive map of the current AI ecosystem: 29 layers and ~330 players, from what people spend on (shopping, feeds, food, travel, education, gig work, payments, health, work) through labs, clouds, capital, data centres, energy, chips, fabs and equipment, down to space and raw materials.
+An interactive map of the current AI ecosystem: 29 layers and ~370 players, from what people spend on (shopping, feeds, food, travel, education, gig work, payments, health, work) through labs, clouds, capital, data centres, energy, chips, fabs and equipment, down to space and raw materials.
 
 Part of [Mindy's portfolio](https://mindy-portfolio.vercel.app).
 
@@ -9,7 +9,7 @@ The home page (`index.html`) *is* the app: a slim toolbar and the map filling th
 - **Two views, one dataset.** *Full map* (the default) packs the six zones into a space-filling layout chosen for your window's shape (side-by-side blocks on a laptop, a single column on a phone) and re-flows when you resize. Every company is an icon; icons, names and titles live in one scene and scale together, so nothing overlaps at any zoom, and zooming out stops at a readable size. Zoom or click a layer to see names and tickers; click a company to reveal only its own links (amber = used by, teal = depends on). Hover for definitions. An *All links* button draws every link. *Layers* is the guided, scrollable alternative.
 - Click any logo for what it makes, how it's doing and the opportunity.
 - Follow the amber (depends on it) and teal (it depends on) chains.
-- **Industry views** (top bar): Everything, AI model, Semiconductors, Space, Power & data centres, Biotech. A view shows its layers plus what they depend on, re-packed to fill the screen. The AI model view adds a *Highlight* bar (compute, memory, foundry, power, minerals…).
+- **Industry views** (top bar): Everything, AI model, Semiconductors, Space, Power & data centres, Biotech, plus TSMC & Taiwan (about 40 Taiwan-based players, TSMC's customers and the foreign suppliers they rely on). A view shows its layers plus what they depend on, re-packed to fill the screen. The AI model view adds a *Highlight* bar (compute, memory, foundry, power, minerals…).
 - **Countries and bottlenecks.** Every company has a headquarters country (shown as a code under its name; filter from the country menu). ◆ marks bottlenecks, and each has a one-line reason in its panel. Country data and bottleneck reasons live in `js/ai-map-extra.js`.
 - Filter by public, private, bottleneck, or non-company; run guided journeys such as *Your Amazon order → a quartz mine*.
 - The **full map is the default view**. Deep links: `#layers` opens the scrollable layer view instead, `#lens=public` (or `private`, `choke`, `other`) pre-selects a lens, `#n=nvidia` selects a company, `#j=feed` starts a journey (combine with `&`, e.g. `#layers&n=nvidia`).

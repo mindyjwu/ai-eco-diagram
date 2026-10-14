@@ -239,8 +239,9 @@
   function computeView(v) {
     if (!v || v.id === 'all') return null;
     var set = {}, q = [], ex = v.exclude || [];
-    NODES.forEach(function (n) { if ((v.layers || []).indexOf(LAYERS[n.l].id) > -1) { set[n.id] = 0; q.push(n.id); } });
+    NODES.forEach(function (n) { if ((v.layers || []).indexOf(LAYERS[n.l].id) > -1 || (v.hq && n.hq === v.hq)) { set[n.id] = 0; q.push(n.id); } });
     (v.extra || []).forEach(function (id) { if (by[id] && set[id] === undefined) { set[id] = 0; q.push(id); } });
+    (v.customers || []).forEach(function (id) { (down[id] || []).forEach(function (c) { if (set[c] === undefined) set[c] = v.depth || 99; }); });   /* shown for context, not expanded */
     while (q.length) {
       var x = q.shift(), d = set[x];
       if (d >= (v.depth || 99)) continue;
@@ -302,7 +303,7 @@
         c.edges.forEach(function (e) { edges.push({ a: e.a, b: e.b, cls: (e.dir === 'up' ? 'sup' : 'cus') + (e.d === 1 ? ' strong' : '') }); });
       } else if (state.group > -1 && VIEW.def.groups) {
         active = true;
-        VIEW.def.groups[state.group].ids.forEach(function (id) { cls[id] = 'sup'; });
+        groupIds(VIEW.def.groups[state.group]).forEach(function (id) { cls[id] = 'sup'; });
       }
     }
     edges = edges.filter(function (e) { return inView(by[e.a]) && inView(by[e.b]); });
@@ -385,6 +386,7 @@
     pbody.appendChild(section('Why it matters', para(n.y)));
     if (n.cw) pbody.appendChild(section('Why it is a bottleneck', para(n.cw)));
     if (n.geo) pbody.appendChild(section('Where it comes from', para(n.geo)));
+    if (n.loc) pbody.appendChild(section('Where in Taiwan', para(n.loc)));
     if (n.p) pbody.appendChild(section('Outlook', para(n.p + ' (Qualitative, to about mid-2026; not live data.)')));
     var bp = el('p', 'angle'); bp.appendChild(el('strong', null, 'Build. ')); bp.appendChild(document.createTextNode(L.build));
     pbody.appendChild(section('Opportunity', para(n.o || L.take, bp)));
@@ -511,6 +513,7 @@
     syncFilters();
   }
   var groupsEl = $('#fm-groups');
+  function groupIds(g) { return g.hq ? NODES.filter(function (n) { return n.hq === g.hq && inView(n); }).map(function (n) { return n.id; }) : g.ids; }
   function syncGroups() {
     var gs = VIEW.def.groups;
     groupsEl.textContent = '';
@@ -525,7 +528,7 @@
         state.group = state.group === i ? -1 : i;
         if (state.group > -1) { endJourney(true); state.sel = null; closePanel(); setHash(''); }
         syncGroups(); apply();
-        if (state.group > -1 && state.mode === 'map') fmFlyIds(g.ids);
+        if (state.group > -1 && state.mode === 'map') fmFlyIds(groupIds(g));
       });
       groupsEl.appendChild(b);
     });

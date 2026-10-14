@@ -54,6 +54,7 @@
     ['AI agents', 'AI that takes actions for you, such as booking a trip or running a workflow, not just chatting.', 1],
     ['recommendation engine', 'The AI that decides which product, video or ad to show you next.', 1],
     ['robotaxi', 'A driverless ride-hailing car. Waymo is the leader in the US.', 1],
+    ['bottleneck', 'A step where one or very few suppliers control supply, so it is hard or slow to replace. Marked ◆ on the map.', 1],
     ['chokepoint', 'A step where one or very few suppliers control supply, so it is hard or slow to replace. Marked ◆ on the map.', 1],
     ['private credit', 'Loans made by funds rather than banks. A major source of money for data centres.', 1],
     ['SMR', 'Small modular reactor. A compact nuclear plant built in a factory. Still mostly pre-commercial.'],

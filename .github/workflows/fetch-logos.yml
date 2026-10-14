@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - 'js/ai-map-data.js'
+      - 'js/ai-map-extra.js'
       - 'scripts/fetch-logos.mjs'
   schedule:
     - cron: '23 5 1 * *'

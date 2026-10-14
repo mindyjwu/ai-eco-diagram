@@ -17,6 +17,7 @@ const force = process.argv.includes('--force');
 
 const w = {};
 new Function('window', fs.readFileSync(path.join(root, 'js', 'ai-map-data.js'), 'utf8'))(w);
+new Function('window', fs.readFileSync(path.join(root, 'js', 'ai-map-extra.js'), 'utf8'))(w);   /* adds the life-sciences companies */
 const domains = [...new Set(w.AIMAP.NODES.filter((n) => n.d && !n.e).map((n) => n.d))].sort();
 
 fs.mkdirSync(outDir, { recursive: true });

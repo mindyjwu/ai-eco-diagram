@@ -97,15 +97,23 @@
     <div class="stat"><b id="st-layers">0</b><span>layers</span></div>
     <div class="stat"><b id="st-nodes">0</b><span>players</span></div>
     <div class="stat"><b id="st-links">0</b><span>links</span></div>
-    <div class="stat"><b id="st-choke">0</b><span>chokepoints &#9670;</span></div>
+    <div class="stat"><b id="st-choke">0</b><span>bottlenecks &#9670;</span></div>
   </div>
 
   <h2>How to read it</h2>
   <div class="grid">
-    <div class="card"><b>1 &middot; Start wide</b>Five colour-coded zones, numbered in reading order, from what people spend to raw materials. Every company is one icon.</div>
+    <div class="card"><b>1 &middot; Start wide</b>Six colour-coded zones, numbered in reading order, from what people spend to raw materials. Every company is one icon.</div>
     <div class="card"><b>2 &middot; Zoom in</b>Scroll, pinch or click a layer. The row opens to every company, then names and tickers.</div>
     <div class="card"><b>3 &middot; Click a company</b>See what it does and the opportunity. <span class="key c"></span>Amber: used by. <span class="key s"></span>Teal: depends on.</div>
-    <div class="card"><b>4 &middot; Hover for help</b>Dotted terms and layer names explain themselves. Use the lenses to filter to public, private or &#9670; chokepoints. Press <b style="display:inline">/</b> to search.</div>
+    <div class="card"><b>4 &middot; Hover for help</b>Dotted terms and layer names explain themselves. Pick an industry view (AI model, semiconductors, space, power, biotech), filter by headquarters country, or show only &#9670; bottlenecks. Press <b style="display:inline">/</b> to search.</div>
+  </div>
+
+  <h2>Views, countries and bottlenecks</h2>
+  <div class="grid">
+    <a class="card" href="index.html#view=model"><h3>An AI model, physically</h3>Chips, memory, servers, power, buildings and minerals. Use the Highlight bar to light up each component.<em>Open the AI model view &rarr;</em></a>
+    <a class="card" href="index.html#view=semis"><h3>Semiconductors</h3>Designers, fabs, tools and materials down to raw quartz.<em>Open the semiconductor view &rarr;</em></a>
+    <a class="card" href="index.html#view=bio"><h3>Biotech</h3>Drug makers, lab tools and contract factories, plus the chips and glass they depend on.<em>Open the biotech view &rarr;</em></a>
+    <a class="card" href="index.html#view=semis&amp;country=TW"><h3>Where it is made</h3>Each company shows its home country as a two-letter code. Filter to one country to see how concentrated a view is.<em>Show Taiwan in semiconductors &rarr;</em></a>
   </div>
 
   <h2>Guided journeys</h2>
@@ -114,8 +122,8 @@
 
   <h2>Four ways into this map</h2>
   <div class="grid">
-    <a class="card" href="index.html#lens=public"><h3>Own a piece</h3>Public companies carry a ticker and quote link. Know which layer you understand, and whether you pay for a chokepoint or a story.<em>Show public stocks &rarr;</em></a>
-    <a class="card" href="index.html#lens=choke"><h3>Work inside it</h3>Fabs, power, cooling and grid building are short of skilled people. Chip, ML and infrastructure roles span every layer.<em>Show chokepoints &rarr;</em></a>
+    <a class="card" href="index.html#lens=public"><h3>Own a piece</h3>Public companies carry a ticker and quote link. Know which layer you understand, and whether you pay for a bottleneck or a story.<em>Show public stocks &rarr;</em></a>
+    <a class="card" href="index.html#lens=choke"><h3>Work inside it</h3>Fabs, power, cooling and grid building are short of skilled people. Chip, ML and infrastructure roles span every layer.<em>Show bottlenecks &rarr;</em></a>
     <a class="card" href="index.html#lens=private"><h3>Build on it</h3>Each layer has a build angle. Private companies are potential partners, customers or competitors.<em>Show private companies &rarr;</em></a>
     <a class="card" href="index.html#lens=other"><h3>Finance or govern it</h3>Data centres run on private credit and sovereign money, and the bottom of the chain is shaped by export controls.<em>Show other items &rarr;</em></a>
   </div>
@@ -134,6 +142,7 @@
 
 <script src="js/ai-tip.js"></script>
 <script src="js/ai-map-data.js"></script>
+<script src="js/ai-map-extra.js"></script>
 <script>
   (function () {
     var D = window.AIMAP;

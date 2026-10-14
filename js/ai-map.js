@@ -115,7 +115,9 @@
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---------- state ---------- */
-  var state = { sel: null, hover: null, lens: 'all', query: '', depth: 'full', journey: null, mode: 'layers' };
+  var state = { sel: null, hover: null, type: 'all', choke: false, country: '', view: 'all', group: -1, query: '', depth: 'full', journey: null, mode: 'layers' };
+  var COUNTRIES = D.COUNTRIES || {}, VIEWS = D.VIEWS || [{ id: 'all', name: 'Everything' }];
+  var VIEW = { def: VIEWS[0], set: null };
   var nodeEls = {};
 
   /* ---------- colour: one hue per zone, a muted shade per layer ---------- */
@@ -148,6 +150,8 @@
   function firstSentence(t) { var m = /^(.+?[.!?])(\s|$)/.exec(t || ''); return m ? m[1] : (t || ''); }
   function annotate(root) { if (window.AITip) window.AITip.annotate(root); }
 
+  function nodeTip(n) { return n.n + (n.pq ? ' · ' + n.pq : '') + '|' + firstSentence(n.w) + (n.c && n.cw ? ' \u25C6 ' + n.cw : ''); }
+
   /* ---------- build the layers ---------- */
   var layersRoot = $('#layers');
   LAYERS.forEach(function (L, i) {
@@ -173,11 +177,12 @@
       var b = el('button', 'node k-' + n.kind);
       b.type = 'button';
       b.dataset.id = n.id;
-      b.dataset.tip = n.n + (n.pq ? ' · ' + n.pq : '') + '|' + firstSentence(n.w);
-      b.setAttribute('aria-label', n.n + (n.pq ? ', ' + n.pq : '') + (n.c ? ', chokepoint' : ''));
+      b.dataset.tip = nodeTip(n);
+      b.setAttribute('aria-label', n.n + (n.pq ? ', ' + n.pq : '') + (n.hq ? ', ' + countryName(n.hq) : '') + (n.c ? ', bottleneck' : ''));
       b.appendChild(logo(n, 'm'));
       b.appendChild(el('span', 'node-n', n.n));
       var sub = n.kind === 'public' ? n.pq : n.kind === 'private' ? 'Private' : n.kind === 'life' ? '' : (n.kind === 'other' ? '' : '');
+      sub = [sub, hqLabel(n)].filter(Boolean).join(' · ');
       if (sub) b.appendChild(el('span', 'node-t', sub));
       if (n.c) { var c = el('span', 'node-c', '◆'); b.appendChild(c); }
       grid.appendChild(b);
@@ -219,12 +224,31 @@
 
   /* ---------- filters ---------- */
   function matchesFilters(n) {
-    if (state.lens === 'public' && n.kind !== 'public') return false;
-    if (state.lens === 'private' && n.kind !== 'private') return false;
-    if (state.lens === 'choke' && !n.c) return false;
-    if (state.lens === 'other' && n.kind !== 'other') return false;
+    if (state.type === 'public' && n.kind !== 'public') return false;
+    if (state.type === 'private' && n.kind !== 'private') return false;
+    if (state.type === 'other' && n.kind !== 'other') return false;
+    if (state.choke && !n.c) return false;
+    if (state.country && n.hq !== state.country) return false;
     if (state.query && n.hay.indexOf(state.query) === -1) return false;
     return true;
+  }
+  function inView(n) { return !VIEW.set || VIEW.set[n.id] !== undefined; }
+  function countryName(c) { return c === 'WW' ? 'Global' : (COUNTRIES[c] || c); }
+  function hqLabel(n) { return n.hq && n.hq !== 'WW' ? n.hq : ''; }
+  /* a view = the layers (and extra players) it is about, plus whatever they depend on, `depth` steps down */
+  function computeView(v) {
+    if (!v || v.id === 'all') return null;
+    var set = {}, q = [], ex = v.exclude || [];
+    NODES.forEach(function (n) { if ((v.layers || []).indexOf(LAYERS[n.l].id) > -1) { set[n.id] = 0; q.push(n.id); } });
+    (v.extra || []).forEach(function (id) { if (by[id] && set[id] === undefined) { set[id] = 0; q.push(id); } });
+    while (q.length) {
+      var x = q.shift(), d = set[x];
+      if (d >= (v.depth || 99)) continue;
+      by[x].up.forEach(function (u) {
+        if (set[u] === undefined && ex.indexOf(LAYERS[by[u].l].id) < 0) { set[u] = d + 1; q.push(u); }
+      });
+    }
+    return set;
   }
 
   /* ---------- edge drawing ---------- */
@@ -276,18 +300,25 @@
         Object.keys(c.ups).forEach(function (k) { if (!cls[k]) cls[k] = 'sup'; });
         Object.keys(c.downs).forEach(function (k) { if (!cls[k]) cls[k] = 'cus'; });
         c.edges.forEach(function (e) { edges.push({ a: e.a, b: e.b, cls: (e.dir === 'up' ? 'sup' : 'cus') + (e.d === 1 ? ' strong' : '') }); });
+      } else if (state.group > -1 && VIEW.def.groups) {
+        active = true;
+        VIEW.def.groups[state.group].ids.forEach(function (id) { cls[id] = 'sup'; });
       }
     }
-    var shown = 0;
+    edges = edges.filter(function (e) { return inView(by[e.a]) && inView(by[e.b]); });
+    var shown = 0, total = 0;
     NODES.forEach(function (n) {
       var e = nodeEls[n.id];
       NODE_CLASSES.forEach(function (k) { e.classList.remove(k); });
+      if (!inView(n)) return;
+      total++;
       var ok = matchesFilters(n);
       if (ok) shown++;
       if (active) { if (cls[n.id]) e.classList.add(cls[n.id]); else e.classList.add('dim'); }
       if (!ok) e.classList.add('off');
     });
-    $('#count').textContent = (state.lens === 'all' && !state.query) ? NODES.length + ' players' : shown + ' of ' + NODES.length;
+    var filtered = state.type !== 'all' || state.choke || state.country || state.query;
+    $('#count').textContent = filtered ? shown + ' of ' + total : total + ' players';
     map.classList.toggle('has-active', !!active);
     if (state.mode === 'map') fmUpdate(cls, edges, active); else drawEdges(edges);
   }
@@ -343,7 +374,8 @@
     if (n.kind === 'public') kindTxt += ' · ' + n.pq;
     badges.appendChild(el('span', 'badge k-' + n.kind, kindTxt));
     if (n.s && n.kind !== 'life') badges.appendChild(el('span', 'badge soft', n.s));
-    if (n.c) badges.appendChild(el('span', 'badge warn', '◆ Chokepoint'));
+    if (n.hq) badges.appendChild(el('span', 'badge soft', countryName(n.hq)));
+    if (n.c) badges.appendChild(el('span', 'badge warn', '◆ Bottleneck'));
     ht.appendChild(badges);
     ht.appendChild(el('div', 'p-layer', 'Layer ' + String(n.l).padStart(2, '0') + ' · ' + L.name));
     head.appendChild(ht);
@@ -351,6 +383,8 @@
 
     pbody.appendChild(section('What it does', para(n.w)));
     pbody.appendChild(section('Why it matters', para(n.y)));
+    if (n.cw) pbody.appendChild(section('Why it is a bottleneck', para(n.cw)));
+    if (n.geo) pbody.appendChild(section('Where it comes from', para(n.geo)));
     if (n.p) pbody.appendChild(section('Outlook', para(n.p + ' (Qualitative, to about mid-2026; not live data.)')));
     var bp = el('p', 'angle'); bp.appendChild(el('strong', null, 'Build. ')); bp.appendChild(document.createTextNode(L.build));
     pbody.appendChild(section('Opportunity', para(n.o || L.take, bp)));
@@ -386,12 +420,20 @@
 
   /* ---------- selection ---------- */
   function setHash(h) {
-    var full = (state.mode === 'layers' ? 'layers' + (h ? '&' : '') : '') + (h || '');
+    var parts = [];
+    if (state.mode === 'layers') parts.push('layers');
+    if (state.view !== 'all') parts.push('view=' + state.view);
+    if (state.country) parts.push('country=' + state.country);
+    if (state.choke) parts.push('lens=choke');
+    if (state.type !== 'all') parts.push('lens=' + state.type);
+    if (h) parts.push(h);
+    var full = parts.join('&');
     try { history.replaceState(null, '', full ? '#' + full : location.pathname + location.search); } catch (e) {}
   }
   function select(id, opts) {
     endJourney(true);
-    state.sel = id; state.hover = null;
+    if (!inView(by[id])) setView('all', { keep: true });
+    state.sel = id; state.hover = null; state.group = -1; syncGroups();
     openPanel(id);
     apply();
     setHash('n=' + id);
@@ -404,6 +446,9 @@
     state.sel = null; state.hover = null;
     closePanel(); apply(); setHash('');
   }
+  document.addEventListener('click', function (ev) {                 /* a click outside any control or node clears a group highlight */
+    if (state.group > -1 && document.contains(ev.target) && !ev.target.closest('#fm-groups, .fn, .node, .bar, #panel')) { state.group = -1; syncGroups(); apply(); }
+  });
 
   layersRoot.addEventListener('click', function (ev) {
     var b = ev.target.closest('.node');
@@ -427,18 +472,82 @@
   search.addEventListener('input', function () { state.query = search.value.trim().toLowerCase(); apply(); });
   search.addEventListener('keydown', function (ev) {
     if (ev.key === 'Enter') {
-      var m = NODES.filter(matchesFilters)[0];
+      var m = NODES.filter(function (n) { return inView(n) && matchesFilters(n); })[0];
       if (m && state.query) { select(m.id, { scroll: true }); }
     }
     if (ev.key === 'Escape') { search.value = ''; state.query = ''; apply(); search.blur(); }
   });
-  document.querySelectorAll('[data-lens]').forEach(function (b) {
-    b.addEventListener('click', function () { setLens(b.dataset.lens); });
-  });
+  var selType = $('#type'), selCountry = $('#country'), btnChoke = $('#choke'), viewsEl = $('#views');
+  function syncFilters() {
+    selType.value = state.type; selType.classList.toggle('on', state.type !== 'all');
+    selCountry.value = state.country; selCountry.classList.toggle('on', !!state.country);
+    btnChoke.setAttribute('aria-pressed', String(state.choke));
+  }
+  /* kept for old links like #lens=choke */
   function setLens(l) {
-    state.lens = l;
-    document.querySelectorAll('[data-lens]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lens === l)); });
-    apply();
+    if (l === 'choke') { state.choke = true; state.type = 'all'; }
+    else if (l === 'all') { state.choke = false; state.type = 'all'; }
+    else { state.type = l; }
+    syncFilters(); apply(); setHash(state.sel ? 'n=' + state.sel : '');
+  }
+  selType.addEventListener('change', function () { state.type = selType.value; syncFilters(); apply(); setHash(state.sel ? 'n=' + state.sel : ''); });
+  selCountry.addEventListener('change', function () { state.country = selCountry.value; syncFilters(); apply(); setHash(state.sel ? 'n=' + state.sel : ''); });
+  btnChoke.addEventListener('click', function () { state.choke = !state.choke; syncFilters(); apply(); setHash(state.sel ? 'n=' + state.sel : ''); });
+
+  /* ---------- industry views ---------- */
+  VIEWS.forEach(function (v) {
+    var b = el('button', null, v.name); b.type = 'button'; b.dataset.view = v.id; b.setAttribute('aria-pressed', String(v.id === 'all')); b.dataset.tip = v.name + '|' + (v.blurb || '');
+    b.addEventListener('click', function () { setView(v.id); });
+    viewsEl.appendChild(b);
+  });
+  function refreshCountries() {
+    var cnt = {};
+    NODES.forEach(function (n) { if (inView(n) && n.hq && n.hq !== 'WW') cnt[n.hq] = (cnt[n.hq] || 0) + 1; });
+    var keys = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a] || (countryName(a) < countryName(b) ? -1 : 1); });
+    selCountry.textContent = '';
+    var o0 = el('option', null, 'Any country'); o0.value = ''; selCountry.appendChild(o0);
+    keys.forEach(function (k) { var o = el('option', null, countryName(k) + ' (' + cnt[k] + ')'); o.value = k; selCountry.appendChild(o); });
+    if (state.country && !cnt[state.country]) state.country = '';
+    syncFilters();
+  }
+  var groupsEl = $('#fm-groups');
+  function syncGroups() {
+    var gs = VIEW.def.groups;
+    groupsEl.textContent = '';
+    groupsEl.hidden = !gs;
+    var top = gs ? 56 : 12;
+    if (FMC.TOP !== top) { FMC.TOP = top; if (FM.ready) { FM.sig = ''; } }
+    if (!gs) return;
+    groupsEl.appendChild(el('h3', null, 'Highlight'));
+    gs.forEach(function (g, i) {
+      var b = el('button', null, g.name); b.type = 'button'; b.setAttribute('aria-pressed', String(i === state.group));
+      b.addEventListener('click', function () {
+        state.group = state.group === i ? -1 : i;
+        if (state.group > -1) { endJourney(true); state.sel = null; closePanel(); setHash(''); }
+        syncGroups(); apply();
+        if (state.group > -1 && state.mode === 'map') fmFlyIds(g.ids);
+      });
+      groupsEl.appendChild(b);
+    });
+  }
+  function layersViewApply() {
+    document.querySelectorAll('.node').forEach(function (b) { b.hidden = !inView(by[b.dataset.id]); });
+    document.querySelectorAll('.layer').forEach(function (sec) { sec.hidden = !sec.querySelector('.node:not([hidden])'); });
+    document.querySelectorAll('.flow').forEach(function (f) { f.hidden = VIEW.set !== null; });
+  }
+  function setView(id, opts) {
+    var v = VIEWS.filter(function (x) { return x.id === id; })[0] || VIEWS[0];
+    if (v === VIEW.def && !(opts && opts.force)) return;
+    VIEW.def = v; VIEW.set = computeView(v); state.view = v.id; state.group = -1;
+    if (state.journey) endJourney(true);
+    if (state.sel && !inView(by[state.sel])) { state.sel = null; closePanel(); }
+    state.hover = null;
+    viewsEl.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.view === v.id)); });
+    $('#viewnote').textContent = v.blurb || '';
+    refreshCountries(); syncGroups(); layersViewApply();
+    if (FM.ready) fmViewApply(); else apply();
+    if (state.mode !== 'map') redraw();
+    if (!(opts && opts.keep)) setHash(state.sel ? 'n=' + state.sel : '');
   }
   document.querySelectorAll('[data-depth]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -449,7 +558,7 @@
   });
   $('#reset').addEventListener('click', function () {
     search.value = ''; state.query = '';
-    endJourney(true); state.sel = null; closePanel(); setLens('all'); setHash('');
+    endJourney(true); state.sel = null; closePanel(); state.type = 'all'; state.choke = false; state.country = ''; syncFilters(); setView('all'); setHash(''); apply();
     if (state.mode === 'map') { fmFitAll(true); apply(); } else window.scrollTo({ top: $('#map-top').offsetTop - 90, behavior: reduced ? 'auto' : 'smooth' });
   });
   document.addEventListener('keydown', function (ev) {
@@ -499,7 +608,8 @@
   function startJourney(id) {
     var j = JOURNEYS.filter(function (x) { return x.id === id; })[0];
     if (!j) return;
-    state.sel = null; state.hover = null; closePanel();
+    if (state.view !== 'all') setView('all', { keep: true });
+    state.sel = null; state.hover = null; state.group = -1; syncGroups(); closePanel();
     state.journey = { j: j, i: 0 };
     jcard.hidden = false;
     document.body.classList.add('in-journey');
@@ -569,10 +679,24 @@
   var FM = { ready: false, zc: '', active: false, sig: '', kfit: 0.3, kmin: 0.3 };
   var FMC = { CW: 106, CH: 122, R: 34, PADX: 16, LHEAD: 60, LGAP: 12, ZHEAD: 84, ZPADB: 14, ZGAP: 40, MARGIN: 30, KFLOOR: 0.2, TOP: 12, BOTTOM: 66, SIDE: 12 };
   /* ways to arrange zones [0 demand, 1 AI, 2 physical, 3 chips, 4 frontier] into columns */
-  var ARRS = [
-    [[0], [1], [2], [3], [4]], [[0], [1, 4], [2], [3]], [[0], [1, 2], [3, 4]], [[0], [1, 2, 4], [3]],
-    [[0, 4], [1, 2], [3]], [[0, 1], [2, 3, 4]], [[0, 2], [1, 3, 4]], [[0, 1, 2, 3, 4]]
-  ];
+  var KCAP = 1.25;                           /* small views start at this scale instead of blowing up */
+  /* every way to deal the visible zones into at most four columns (zones in a column keep their order) */
+  function fmArrs(vis) {
+    var vz = [], out = [];
+    ZONES.forEach(function (z, zi) { if (vis[zi]) vz.push(zi); });
+    var cols = [];
+    (function rec(i, used) {
+      if (i === vz.length) { out.push(cols.map(function (c) { return c.slice(); })); return; }
+      for (var c = 0; c <= used && c < 4; c++) {
+        if (c === used) cols.push([]);
+        cols[c].push(vz[i]);
+        rec(i + 1, c === used ? used + 1 : used);
+        cols[c].pop();
+        if (c === used) cols.pop();
+      }
+    })(0, 0);
+    return out;
+  }
   var fmEl = $('#fullmap'), fmSvg = $('#fm-svg'), fmVp = $('#fm-vp');
   var fmV = { x: 0, y: 0, k: 0.3 }, fmFly = 0, fmNodes = {}, fmRows = [], fmLay = [], fmZon = [], fmPos = { layers: [], zones: [] };
 
@@ -615,11 +739,16 @@
   function fmFitAll(animate) {
     var p = fmPad(), aw = p.w - 2 * FMC.SIDE, ah = p.h - FMC.TOP - FMC.BOTTOM;
     var kf = Math.min(aw / FM.W, ah / FM.H);
-    FM.kfit = kf; FM.kmin = Math.max(kf, FMC.KFLOOR);
-    var k = Math.max(FM.kstart || kf, FM.kmin);
+    FM.kfit = kf; FM.kmin = Math.max(Math.min(kf, KCAP), FMC.KFLOOR);
+    var k = Math.max(FM.kstart || Math.min(kf, KCAP), FM.kmin);
     var x = FM.W * k <= aw ? FMC.SIDE + (aw - FM.W * k) / 2 : FMC.SIDE, y = FM.H * k <= ah ? FMC.TOP + (ah - FM.H * k) / 2 : FMC.TOP;
     if (animate && !reduced) fmFlyCenter((p.w / 2 - x) / k, (p.h / 2 - y) / k, k, 650);
     else fmSet(x, y, k);
+  }
+  function fmFlyIds(ids) {
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, any = false;
+    ids.forEach(function (i) { var m = by[i]; if (!m || !inView(m) || m.fx === undefined) return; any = true; x0 = Math.min(x0, m.fx); x1 = Math.max(x1, m.fx); y0 = Math.min(y0, m.fy); y1 = Math.max(y1, m.fy); });
+    if (any) fmFitBox(x0 - 90, y0 - 90, x1 + 90, y1 + 110, { kmax: 0.9 });
   }
   function fmFlyNode(id, k) { var n = by[id]; fmFlyCenter(n.fx, n.fy, k || 1.1); }
   function fmFocus(id) {
@@ -631,8 +760,8 @@
     var k = Math.max(0.7, Math.min(1.5, fit)), tight = k > fit + 1e-6;
     fmFlyCenter(tight ? n.fx : (x0 + x1) / 2, tight ? n.fy : (y0 + y1) / 2, k);
   }
-  function fmFlyLayer(i) { var b = fmPos.layers[i]; fmFitBox(b.x, b.y, b.x + b.w, b.y + b.h, { kmax: 1.15 }); }
-  function fmFlyZone(i) { var b = fmPos.zones[i]; fmFitBox(b.x, b.y, b.x + b.w, b.y + b.h, { kmax: 0.9 }); }
+  function fmFlyLayer(i) { var b = fmPos.layers[i]; if (!b) return; fmFitBox(b.x, b.y, b.x + b.w, b.y + b.h, { kmax: 1.15 }); }
+  function fmFlyZone(i) { var b = fmPos.zones[i]; if (!b) return; fmFitBox(b.x, b.y, b.x + b.w, b.y + b.h, { kmax: 0.9 }); }
 
   /* links: smooth S-curves between icon centres (icons sit on top and hide the ends) */
   function fmPath(a, b) {
@@ -650,7 +779,9 @@
     var g = $('#fm-bg');
     while (g.firstChild) g.removeChild(g.firstChild);
     NODES.forEach(function (n) {
+      if (!inView(n)) return;
       n.up.forEach(function (u) {
+        if (!inView(by[u])) return;
         var p = svgEl('path', { d: fmPath(n, by[u]), 'class': 'be' });
         setPal(p, n.l);
         g.appendChild(p);
@@ -662,7 +793,7 @@
      (a phone), take a comfortable width-fit size and let the view scroll vertically. */
   function fmScore(Wm, Hm, vw, vh) {
     var kw = vw / Wm, kh = vh / Hm, kfit = Math.min(kw, kh);
-    if (kfit >= FMC.KFLOOR) return { score: 100 + kfit, kstart: kfit };
+    if (kfit >= FMC.KFLOOR) return { score: 100 + kfit, kstart: Math.min(kfit, KCAP) };
     var kc = Math.min(kw, 0.5);
     return { score: kc * 10 - (Hm * kc) / 20000, kstart: Math.max(kc, FMC.KFLOOR) };
   }
@@ -670,23 +801,26 @@
   /* ---------- layout: choose how to pack the zones for this window shape ---------- */
   function fmCompute(vw, vh) {
     var cnt = fmRows.map(function (r) { return r.length; }), CMIN = 3, CMAX = 14;
-    var ZMIN = ZONES.map(function (z, zi) {          /* narrowest column (in cells) that still shows every title in full */
-      var need = ((zi + 1) + '  ' + z.name).length * 36 * 0.62 + 44;
-      for (var l = z.a; l <= z.b; l++) need = Math.max(need, LAYERS[l].name.length * 28 * 0.6 + 96 + FMC.PADX);
-      return Math.min(CMAX, Math.max(CMIN, Math.ceil((need - 2 * FMC.PADX) / FMC.CW)));
-    });
-    var ZH = ZONES.map(function (z) {
-      var o = {};
+    var vis = ZONES.map(function (z) { for (var l = z.a; l <= z.b; l++) if (cnt[l]) return true; return false; });
+    var ZMIN = [], ZMAXC = [], ZH = [];
+    ZONES.forEach(function (z, zi) {
+      if (!vis[zi]) return;
+      var need = ((zi + 1) + '  ' + z.name).length * 36 * 0.62 + 44, mx = 1, nl = 0;
+      for (var l = z.a; l <= z.b; l++) if (cnt[l]) { need = Math.max(need, LAYERS[l].name.length * 28 * 0.6 + 96 + FMC.PADX); mx = Math.max(mx, cnt[l]); nl++; }
+      ZMIN[zi] = Math.min(CMAX, Math.max(CMIN, Math.ceil((need - 2 * FMC.PADX) / FMC.CW)));   /* narrowest column (cells) that still shows every title in full */
+      ZMAXC[zi] = Math.max(ZMIN[zi], Math.min(CMAX, mx));
+      ZH[zi] = {};
       for (var c = CMIN; c <= CMAX; c++) {
-        var h = FMC.ZHEAD + FMC.ZPADB + (z.b - z.a) * FMC.LGAP;
-        for (var l = z.a; l <= z.b; l++) h += FMC.LHEAD + Math.ceil(cnt[l] / c) * FMC.CH;
-        o[c] = h;
+        var h = FMC.ZHEAD + FMC.ZPADB + (nl - 1) * FMC.LGAP;
+        for (var l2 = z.a; l2 <= z.b; l2++) if (cnt[l2]) h += FMC.LHEAD + Math.ceil(cnt[l2] / c) * FMC.CH;
+        ZH[zi][c] = h;
       }
-      return o;
     });
     var best = null;
-    ARRS.forEach(function (arr, ai) {
-      var cols = arr.length, cpl = new Array(cols), cmin = arr.map(function (zs) { return Math.max.apply(null, zs.map(function (zi) { return ZMIN[zi]; })); });
+    fmArrs(vis).forEach(function (arr) {
+      var cols = arr.length, cpl = new Array(cols);
+      var cmin = arr.map(function (zs) { return Math.max.apply(null, zs.map(function (zi) { return ZMIN[zi]; })); });
+      var cmax = arr.map(function (zs, i) { return Math.max(cmin[i], Math.max.apply(null, zs.map(function (zi) { return ZMAXC[zi]; }))); });
       function score() {
         var W = (cols - 1) * FMC.ZGAP, H = 0, used = 0, i;
         for (i = 0; i < cols; i++) {
@@ -697,24 +831,26 @@
         }
         var sc = fmScore(W + 2 * FMC.MARGIN, H + 2 * FMC.MARGIN, vw, vh);
         var cost = -sc.score - 0.0004 * (used / (W * H));
-        if (!best || cost < best.cost) best = { cost: cost, ai: ai, cpl: cpl.slice(), W: W, H: H, kstart: sc.kstart };
+        if (!best || cost < best.cost) best = { cost: cost, arr: arr, cpl: cpl.slice(), W: W, H: H, kstart: sc.kstart };
       }
       (function rec(i) {
         if (i === cols) { score(); return; }
-        for (var c = cmin[i]; c <= CMAX; c++) { cpl[i] = c; rec(i + 1); }
+        for (var c = cmin[i]; c <= cmax[i]; c++) { cpl[i] = c; rec(i + 1); }
       })(0);
     });
     return best;
   }
   function fmPlaceAll(best) {
-    var arr = ARRS[best.ai], x = FMC.MARGIN;
+    var arr = best.arr, x = FMC.MARGIN;
     fmPos = { layers: [], zones: [] };
     arr.forEach(function (zs, ci) {
       var cpl = best.cpl[ci], w = cpl * FMC.CW + 2 * FMC.PADX, y = FMC.MARGIN;
       zs.forEach(function (zi) {
         var z = ZONES[zi], y0 = y, cy = y + FMC.ZHEAD;
         for (var l = z.a; l <= z.b; l++) {
-          var n = fmRows[l].length, rows = Math.ceil(n / cpl), bh = FMC.LHEAD + rows * FMC.CH;
+          var n = fmRows[l].length;
+          if (!n) continue;
+          var rows = Math.ceil(n / cpl), bh = FMC.LHEAD + rows * FMC.CH;
           fmPos.layers[l] = { x: x + FMC.PADX / 2, y: cy, w: w - FMC.PADX, h: bh };
           fmRows[l].forEach(function (nd, i) {
             nd.fx = x + FMC.PADX + (i % cpl) * FMC.CW + FMC.CW / 2;
@@ -729,7 +865,7 @@
       x += w + FMC.ZGAP;
     });
     FM.W = best.W + 2 * FMC.MARGIN; FM.H = best.H + 2 * FMC.MARGIN; FM.kstart = best.kstart;
-    FM.sig = best.ai + ':' + best.cpl.join(',');
+    FM.sig = JSON.stringify(best.arr) + ':' + best.cpl.join(',');
   }
   function fit(text, px, maxW) {          /* trim a title so it always fits its box */
     var per = px * 0.58, max = Math.max(4, Math.floor(maxW / per));
@@ -738,44 +874,66 @@
   function fmApply() {
     ZONES.forEach(function (z, zi) {
       var b = fmPos.zones[zi], e = fmZon[zi];
+      e.g.classList.toggle('gone', !b);
+      if (!b) return;
       e.rect.setAttribute('x', b.x); e.rect.setAttribute('y', b.y); e.rect.setAttribute('width', b.w); e.rect.setAttribute('height', b.h);
       e.title.setAttribute('x', b.x + 22); e.title.setAttribute('y', b.y + 54);
       e.title.textContent = fit((zi + 1) + '  ' + z.name.toUpperCase(), 36, b.w - 44);
     });
     LAYERS.forEach(function (L, i) {
       var b = fmPos.layers[i], e = fmLay[i];
+      e.g.classList.toggle('gone', !b);
+      if (!b) return;
+      e.g.dataset.tip = L.name + ' (' + fmRows[i].length + ')|' + L.sub + ' Click to zoom in.';
+      e.count.textContent = fmRows[i].length;
       e.rect.setAttribute('x', b.x); e.rect.setAttribute('y', b.y); e.rect.setAttribute('width', b.w); e.rect.setAttribute('height', b.h);
       e.title.setAttribute('x', b.x + 16); e.title.setAttribute('y', b.y + 40);
       e.title.textContent = fit(L.name, 28, b.w - 96);
       e.count.setAttribute('x', b.x + b.w - 16); e.count.setAttribute('y', b.y + 40);
     });
-    NODES.forEach(function (n) { fmNodes[n.id].setAttribute('transform', 'translate(' + n.fx + ',' + n.fy + ')'); });
+    NODES.forEach(function (n) {
+      var g = fmNodes[n.id], on = inView(n);
+      g.classList.toggle('vhide', !on);
+      if (on) g.setAttribute('transform', 'translate(' + n.fx + ',' + n.fy + ')');
+    });
+    var jump = $('#fm-jump');
+    jump.textContent = ''; var o0 = el('option', null, 'Jump to layer\u2026'); o0.value = ''; jump.appendChild(o0);
+    LAYERS.forEach(function (L, i) { if (!fmPos.layers[i]) return; var o = el('option', null, String(i).padStart(2, '0') + ' \u00b7 ' + L.name); o.value = i; jump.appendChild(o); });
     if ($('#fm-bg').firstChild) fmBuildBg();
   }
   function fmRelayout(force) {
     var p = fmPad();
     if (!p.w || !p.h) return;
     var best = fmCompute(p.w - 2 * FMC.SIDE, p.h - FMC.TOP - FMC.BOTTOM);
-    var sig = best.ai + ':' + best.cpl.join(',');
+    var sig = JSON.stringify(best.arr) + ':' + best.cpl.join(',');
     var wasFit = Math.abs(fmV.k - Math.max(FM.kstart || 0, FM.kmin)) < 0.002;
     if (sig !== FM.sig || force) { fmPlaceAll(best); fmApply(); fmFitAll(false); apply(); return; }
     var oldMin = FM.kmin;
-    FM.kfit = Math.min((p.w - 2 * FMC.SIDE) / FM.W, (p.h - FMC.TOP - FMC.BOTTOM) / FM.H); FM.kmin = Math.max(FM.kfit, FMC.KFLOOR);
+    FM.kfit = Math.min((p.w - 2 * FMC.SIDE) / FM.W, (p.h - FMC.TOP - FMC.BOTTOM) / FM.H); FM.kmin = Math.max(Math.min(FM.kfit, KCAP), FMC.KFLOOR);
     FM.kstart = fmScore(FM.W, FM.H, p.w - 2 * FMC.SIDE, p.h - FMC.TOP - FMC.BOTTOM).kstart;
     if (wasFit || fmV.k < FM.kmin) fmFitAll(false);
     else fmSet(fmV.x, fmV.y, fmV.k);
   }
 
-  function buildFM() {
-    var R = FMC.R;
+  function fmRowsBuild() {
     fmRows = LAYERS.map(function () { return []; });
-    NODES.forEach(function (n) { fmRows[n.l].push(n); });
+    NODES.forEach(function (n) { if (inView(n)) fmRows[n.l].push(n); });
     fmRows.forEach(function (r) {            /* best-connected first, so key names lead each row */
       r.sort(function (a, b) {
         var da = a.up.length + (down[a.id] || []).length + (a.c ? 3 : 0), db = b.up.length + (down[b.id] || []).length + (b.c ? 3 : 0);
         return db - da || (a.n < b.n ? -1 : 1);
       });
     });
+  }
+  function fmViewApply() {
+    fmRowsBuild();
+    fmCancel();
+    FM.sig = '';
+    fmRelayout(true);
+  }
+  function buildFM() {
+    var R = FMC.R;
+    fmRowsBuild();
     var gZones = svgEl('g'), gBg = svgEl('g', { 'class': 'fm-bg', id: 'fm-bg' }), gHi = svgEl('g', { id: 'fm-hi' }), gNodes = svgEl('g');
     ZONES.forEach(function (z, zi) {
       var g = svgEl('g', { 'class': 'zn' });
@@ -785,7 +943,7 @@
       var title = svgEl('text', { 'class': 'zt' });
       g.appendChild(rect); g.appendChild(title);
       gZones.appendChild(g);
-      fmZon[zi] = { rect: rect, title: title };
+      fmZon[zi] = { g: g, rect: rect, title: title };
     });
     LAYERS.forEach(function (L, i) {
       var g = svgEl('g', { 'class': 'ly' });
@@ -796,13 +954,13 @@
       var count = svgEl('text', { 'class': 'lc', 'text-anchor': 'end' }); count.textContent = fmRows[i].length;
       g.appendChild(rect); g.appendChild(title); g.appendChild(count);
       gZones.appendChild(g);
-      fmLay[i] = { rect: rect, title: title, count: count };
+      fmLay[i] = { g: g, rect: rect, title: title, count: count };
     });
     NODES.forEach(function (n) {
       var g = svgEl('g', { 'class': 'fn k-' + n.kind, tabindex: -1 });
       g.dataset.id = n.id;
       setPal(g, n.l);
-      g.dataset.tip = n.n + (n.pq ? ' · ' + n.pq : '') + '|' + firstSentence(n.w);
+      g.dataset.tip = nodeTip(n);
       var vis = svgEl('g', { 'class': 'vis' });
       vis.appendChild(svgEl('circle', { r: R, 'class': 'c' }));
       var mono = svgEl('text', { 'class': 'mono', y: 6, 'text-anchor': 'middle' });
@@ -827,8 +985,9 @@
       if (l2.length > 12) l2 = l2.slice(0, 11) + '…';
       var t1 = svgEl('text', { 'class': 'lbl', y: R + 16, 'text-anchor': 'middle' }); t1.textContent = l1; g.appendChild(t1);
       if (l2) { var t2 = svgEl('text', { 'class': 'lbl', y: R + 30, 'text-anchor': 'middle' }); t2.textContent = l2; g.appendChild(t2); }
-      if (n.pq || n.kind === 'private') {
-        var tk = svgEl('text', { 'class': 'tk', y: R + (l2 ? 44 : 30), 'text-anchor': 'middle' }); tk.textContent = n.pq || 'Private'; g.appendChild(tk);
+      var tkt = [n.pq || (n.kind === 'private' ? 'Private' : ''), hqLabel(n)].filter(Boolean).join(' \u00b7 ');
+      if (tkt) {
+        var tk = svgEl('text', { 'class': 'tk', y: R + (l2 ? 44 : 30), 'text-anchor': 'middle' }); tk.textContent = tkt; g.appendChild(tk);
       }
       gNodes.appendChild(g);
       fmNodes[n.id] = g;
@@ -836,7 +995,6 @@
     fmVp.appendChild(gZones); fmVp.appendChild(gBg); fmVp.appendChild(gHi); fmVp.appendChild(gNodes);
 
     var jump = $('#fm-jump');
-    LAYERS.forEach(function (L, i) { var o = el('option', null, String(i).padStart(2, '0') + ' · ' + L.name); o.value = i; jump.appendChild(o); });
     jump.addEventListener('change', function () { if (jump.value !== '') fmFlyLayer(+jump.value); jump.value = ''; });
 
     /* interaction: wheel, drag, pinch, click, dblclick, hover */
@@ -926,6 +1084,7 @@
     FM.active = !!active;
     NODES.forEach(function (n) {
       var g = fmNodes[n.id];
+      if (!inView(n)) return;
       FM_CLASSES.forEach(function (c) { g.classList.remove(c); });
       if (active) { if (cls[n.id]) g.classList.add(cls[n.id]); else g.classList.add('dim'); }
       if (!matchesFilters(n)) g.classList.add('off');
@@ -979,8 +1138,12 @@
   /* ---------- initial state from URL ---------- */
   apply();
   var hn = /(?:^|[#&])n=([\w-]+)/.exec(location.hash), hj = /(?:^|[#&])j=([\w-]+)/.exec(location.hash);
-  var hl = /(?:^#|&)lens=(all|public|private|choke|other)/.exec(location.hash);
-  if (hl) setLens(hl[1]);
+  var hl = location.hash.match(/(?:^#|&)lens=(all|public|private|choke|other)/g);
+  if (hl) hl.forEach(function (m) { setLens(m.replace(/^[#&]lens=/, '')); });
+  var hv = /(?:^#|&)view=(\w+)/.exec(location.hash), hc = /(?:^#|&)country=([A-Z]{2})/.exec(location.hash);
+  if (hc && COUNTRIES[hc[1]]) { state.country = hc[1]; }
+  if (hv) setView(hv[1], { keep: true });
+  refreshCountries();
   var wantLayers = /(?:^#|&)layers(?:&|$)/.test(location.hash);
   if (!wantLayers) setMode('map', !(hn || hj));
   if (hn && by[hn[1]]) {

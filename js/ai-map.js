@@ -341,6 +341,27 @@
     });
     return wrap;
   }
+  /* what flows along a link: buyer <- supplier */
+  function flowOf(a, b) {
+    if (!D.FLOW) return '';
+    if (by[a].up.indexOf(b) > -1) return D.FLOW(a, b);
+    if (by[b].up.indexOf(a) > -1) return D.FLOW(b, a);
+    return '';
+  }
+  function flowList(ids, emptyMsg, flowFor) {
+    var wrap = el('div', 'flows');
+    if (!ids.length) { wrap.appendChild(el('span', 'muted', emptyMsg)); return wrap; }
+    ids.forEach(function (id) {
+      var n = by[id], b = el('button', 'frow'); b.type = 'button';
+      b.appendChild(logo(n, 's'));
+      var t = el('span', 'frow-t'); t.appendChild(el('span', 'frow-n', n.n));
+      var f = flowFor(id); if (f) t.appendChild(el('span', 'frow-f', f));
+      b.appendChild(t);
+      b.addEventListener('click', function () { select(id, { scroll: true }); });
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
   function section(title, bodyNode) {
     var s = el('section', 'p-sec');
     s.appendChild(el('h3', null, title));
@@ -390,8 +411,9 @@
     if (n.p) pbody.appendChild(section('Outlook', para(n.p + ' (Qualitative, to about mid-2026; not live data.)')));
     var bp = el('p', 'angle'); bp.appendChild(el('strong', null, 'Build. ')); bp.appendChild(document.createTextNode(L.build));
     pbody.appendChild(section('Opportunity', para(n.o || L.take, bp)));
-    pbody.appendChild(section('Depends on', chipList(n.up, 'Nothing mapped below.')));
-    pbody.appendChild(section('Used by', chipList(down[id] || [], 'Nothing mapped above.')));
+    var fin = LAYERS[n.l].id === 'capital';
+    pbody.appendChild(section(fin ? 'Funds' : 'Depends on', flowList(n.up, 'Nothing mapped below.', function (u) { return flowOf(id, u); })));
+    pbody.appendChild(section(fin ? 'Funded by' : 'Used by', flowList(down[id] || [], 'Nothing mapped above.', function (b) { return flowOf(b, id); })));
 
     var links = el('div', 'p-links');
     if (n.d) { var a = el('a', null, 'Website ↗'); a.href = 'https://' + n.d; a.target = '_blank'; a.rel = 'noopener'; links.appendChild(a); }
@@ -1095,7 +1117,17 @@
     var hi = $('#fm-hi');
     while (hi.firstChild) hi.removeChild(hi.firstChild);
     edges.forEach(function (e) {
-      hi.appendChild(svgEl('path', { d: fmPath(by[e.a], by[e.b]), 'class': 'he ' + e.cls }));
+      var d = fmPath(by[e.a], by[e.b]), line = svgEl('path', { d: d, 'class': 'he ' + e.cls });
+      hi.appendChild(line);
+      if (!/strong/.test(e.cls)) return;
+      var f = flowOf(e.a, e.b);
+      if (!f) return;
+      var buyer = by[e.a].up.indexOf(e.b) > -1 ? e.a : e.b, supplier = buyer === e.a ? e.b : e.a;
+      hi.appendChild(svgEl('path', { d: d, 'class': 'ehit', 'data-tip': by[buyer].n + ' \u2190 ' + by[supplier].n + '|' + f }));
+      var mid = line.getPointAtLength(line.getTotalLength() / 2);
+      var tx = svgEl('text', { 'class': 'efl', x: mid.x, y: mid.y, 'text-anchor': 'middle' });
+      tx.textContent = f.length > 34 ? f.slice(0, 33) + '\u2026' : f;
+      hi.appendChild(tx);
     });
     fmSvg.classList.toggle('has-active', !!active);
   }

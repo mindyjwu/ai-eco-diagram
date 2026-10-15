@@ -38,6 +38,8 @@ const ALT = {
   'thequartzcorp.com': ['quartzcorp.com'],
   'yum.com': ['tacobell.com', 'kfc.com'],
   'ulalaunch.com': ['ula.com'],
+  'macronix.com': ['mxic.com.tw'],
+  'nanyapcb.com.tw': ['npc.com.tw'],
   'applovin.com': ['axon.ai'],
 };
 
@@ -48,6 +50,11 @@ const WIKI = {
   'coorstek.com': 'CoorsTek',
   'unimicron.com': 'Unimicron',
   'ulalaunch.com': 'United Launch Alliance',
+  'powerchip.com': 'Powerchip',
+  'marketech.com.tw': 'Marketech International',
+  'nanyapcb.com.tw': 'Nan Ya PCB',
+  'sas.com.tw': 'Sino-American Silicon Products',
+  'tmc.com.tw': 'Taiwan Mask Corporation',
 };
 
 async function grabWiki(d) {

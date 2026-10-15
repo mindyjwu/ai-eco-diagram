@@ -31,7 +31,7 @@
     foxconn: 'AI server assembly', corning: 'Optical fibre and glass', supermicro: 'AI servers and racks', dell: 'AI servers', arista: 'Data-centre switches', amphenol: 'Cables and connectors',
     coherent: 'Lasers for optical transceivers', lumentum: 'Lasers for optical links', innolight: 'Optical transceivers', delta_elec: 'Server power supplies and cooling', avc: 'Heat sinks and cooling parts', auras: 'Liquid-cooling cold plates',
     quanta_computer: 'AI server assembly', wiwynn: 'AI server assembly', wistron: 'AI server and board assembly', inventec: 'Server assembly', compal: 'Server and laptop assembly', accton: 'White-box network switches', lite_on: 'Server power supplies',
-    hpe: 'Servers and networking', celestica: 'Server and network assembly', cisco: 'Networking equipment', credo: 'High-speed cable chips',
+    cerebras: 'Wafer-scale AI systems', hpe: 'Servers and networking', celestica: 'Server and network assembly', cisco: 'Networking equipment', credo: 'High-speed cable chips',
     /* space and raw */
     globalstar: 'Satellite connectivity', suncatcher: 'Space-based compute concept', starcloud: 'Orbital data-centre concept', spacex: 'Launch services', ula: 'Launch services', blueorigin: 'Launch services',
     arianespace: 'Launch services', planet: 'Earth-imaging data', rocketlab: 'Small-satellite launch', starlink: 'Satellite broadband', ast: 'Direct-to-phone satellite service',
@@ -83,6 +83,13 @@
     booking: 'Hotel and travel booking', airbnb: 'Stays', expedia: 'Travel booking', marriott: 'Hotels', hilton: 'Hotels', delta: 'Flights', united: 'Flights', carnival: 'Cruises', amadeus: 'Airline booking systems',
     duolingo: 'Language lessons', coursera: 'Online courses', khan: 'Free lessons and tutoring', chegg: 'Study help', pearson: 'Courses and testing', instructure: 'Canvas learning software', grammarly: 'Writing assistant',
     tyson: 'Meat and poultry', cargill: 'Grain and food ingredients', adm: 'Grains and oilseeds', deere: 'Farm machinery', corteva: 'Seeds and crop chemicals', nutrien: 'Potash and fertiliser', mosaic: 'Phosphate and potash',
+    hanmi_semi: 'HBM stacking (bonder) machines', samsung_em: 'Package substrates and capacitors', renesas: 'Microcontrollers and power chips', kioxia: 'NAND flash memory', screen: 'Wafer cleaning tools',
+    kokusai: 'Batch deposition furnaces', ebara: 'CMP tools and vacuum pumps', dnp: 'Photomasks', nxp: 'Auto and industrial chips', infineon: 'Power semiconductors', stmicro: 'Auto and industrial chips',
+    aixtron: 'MOCVD reactors', suss: 'Bonding and lithography tools', siltronic: 'Silicon wafers', soitec: 'Engineered SOI wafers', arianegroup: 'Ariane rockets', imec: 'Joint process research',
+    umicore: 'Germanium substrates', iqe: 'Epitaxial wafers', oxford_inst: 'Etch and deposition tools', nova: 'Optical metrology tools', camtek: 'Packaging inspection tools', tower: 'Specialty and silicon-photonics wafers',
+    tata_elec: 'Planned wafers and packaging', inari: 'Chip packaging and test', naura: 'Etch, deposition and cleaning tools', amec: 'Etch and deposition tools', ymtc: 'NAND flash memory', cxmt: 'DRAM memory',
+    hua_hong: 'Mature-node wafers', jcet: 'Chip packaging and test', cambricon: 'AI accelerator chips', catl: 'Battery cells', g42: 'AI models and compute', humain: 'AI models and compute', pif: 'Funding', gic: 'Funding',
+    ev_group: 'Wafer bonding tools', teck: 'Copper, zinc and germanium', bhp: 'Copper', lynas: 'Rare-earth oxides', codelco: 'Copper', elkem: 'Silicon metal',
     cf_industries: 'Nitrogen fertiliser', sysco: 'Food distribution', usfoods: 'Food distribution', sibelco_: ''
   };
   delete SUPPLIES.sibelco_;
@@ -103,6 +110,7 @@
     'kyec>advantest': 'Chip test systems', 'kyec>teradyne': 'Chip test systems', 'kyec>chroma': 'Test and measurement systems',
     'lilly>nvidia': 'GPUs for AI drug discovery', 'lilly>lonza': 'Contract manufacturing capacity', 'moderna>lonza': 'mRNA drug-substance manufacturing', 'regeneron>illumina': 'Sequencing for genetics research', 'tempus>illumina': 'Sequencers for patient data',
     'openai>azure': 'Training and inference compute', 'openai>oracle': 'Compute capacity (Stargate)', 'openai>coreweave': 'Rented GPU capacity', 'openai>stargate': 'Planned data-centre capacity',
+    'asml>imec': 'Joint research on High-NA EUV', 'sk_hynix>hanmi_semi': 'Bonders for stacking HBM', 'spectrolab>umicore': 'Germanium wafers for solar cells', 'tesla_energy>catl': 'LFP battery cells', 'wacker>elkem': 'Silicon metal for polysilicon',
     'anthropic>aws': 'Trainium compute and cloud', 'anthropic>gcloud': 'TPU compute', 'anthropic>azure': 'GPU compute'
   };
 

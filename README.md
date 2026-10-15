@@ -1,6 +1,6 @@
 # The AI Ecosystem
 
-An interactive map of the current AI ecosystem: 29 layers and ~370 players, from what people spend on (shopping, feeds, food, travel, education, gig work, payments, health, work) through labs, clouds, capital, data centres, energy, chips, fabs and equipment, down to space and raw materials.
+An interactive map of the current AI ecosystem: 29 layers and ~410 players from 28 countries, from what people spend on (shopping, feeds, food, travel, education, gig work, payments, health, work) through labs, clouds, capital, data centres, energy, chips, fabs and equipment, down to space and raw materials.
 
 Part of [Mindy's portfolio](https://mindy-portfolio.vercel.app).
 

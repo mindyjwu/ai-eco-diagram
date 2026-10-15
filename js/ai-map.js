@@ -150,6 +150,17 @@
   function firstSentence(t) { var m = /^(.+?[.!?])(\s|$)/.exec(t || ''); return m ? m[1] : (t || ''); }
   function annotate(root) { if (window.AITip) window.AITip.annotate(root); }
 
+  /* hover text for a category: what it is, why it matters, who is in it, where they are based */
+  function catTip(title, sub, take, nodes, zoom) {
+    var rank = nodes.slice().sort(function (a, b) { return (b.up.length + (down[b.id] || []).length + (b.c ? 3 : 0)) - (a.up.length + (down[a.id] || []).length + (a.c ? 3 : 0)); });
+    var top = rank.slice(0, 4).map(function (n) { return n.n.replace(/ \(.*\)$/, ''); });
+    var cc = {};
+    nodes.forEach(function (n) { if (n.hq && n.hq !== 'WW') cc[n.hq] = (cc[n.hq] || 0) + 1; });
+    var cs = Object.keys(cc).sort(function (a, b) { return cc[b] - cc[a]; }).slice(0, 3).map(function (k) { return countryName(k) + ' ' + cc[k]; });
+    var ch = nodes.filter(function (n) { return n.c; }).length;
+    return title + ' (' + nodes.length + ')|' + sub + (take ? ' ' + take : '') + (top.length ? ' Includes ' + top.join(', ') + '.' : '') +
+      (cs.length ? ' Based mostly in ' + cs.join(', ') + '.' : '') + (ch ? ' ' + ch + ' bottleneck' + (ch > 1 ? 's' : '') + '.' : '') + (zoom ? ' Click to zoom in.' : '');
+  }
   function nodeTip(n) { return n.n + (n.pq ? ' · ' + n.pq : '') + '|' + firstSentence(n.w) + (n.c && n.cw ? ' \u25C6 ' + n.cw : ''); }
 
   /* ---------- build the layers ---------- */
@@ -162,7 +173,8 @@
     var head = el('header', 'layer-h');
     var num = el('span', 'layer-n', String(i).padStart(2, '0'));
     var t = el('div', 'layer-t');
-    var h2 = el('h2', null, L.name); h2.dataset.tip = L.name + '|' + L.sub + ' ' + L.take; t.appendChild(h2);
+    var h2 = el('h2', null, L.name); t.appendChild(h2);
+    head.dataset.tip = catTip(L.name, L.sub, L.take, NODES.filter(function (n) { return n.l === i; }), false);
     t.appendChild(el('p', 'layer-sub', L.sub));
     head.appendChild(num); head.appendChild(t);
     var info = el('details', 'layer-info');
@@ -546,6 +558,7 @@
     groupsEl.appendChild(el('h3', null, 'Highlight'));
     gs.forEach(function (g, i) {
       var b = el('button', null, g.name); b.type = 'button'; b.setAttribute('aria-pressed', String(i === state.group));
+      if (g.desc) b.dataset.tip = g.name + '|' + g.desc;
       b.addEventListener('click', function () {
         state.group = state.group === i ? -1 : i;
         if (state.group > -1) { endJourney(true); state.sel = null; closePanel(); setHash(''); }
@@ -901,6 +914,9 @@
       var b = fmPos.zones[zi], e = fmZon[zi];
       e.g.classList.toggle('gone', !b);
       if (!b) return;
+      var zl = [], zn = [];
+      for (var q = z.a; q <= z.b; q++) if (fmRows[q] && fmRows[q].length) { zl.push(LAYERS[q].name); zn = zn.concat(fmRows[q]); }
+      e.g.dataset.tip = catTip((zi + 1) + ' \u00b7 ' + z.name, z.sub, 'Layers: ' + zl.join(', ') + '.', zn, true);
       e.rect.setAttribute('x', b.x); e.rect.setAttribute('y', b.y); e.rect.setAttribute('width', b.w); e.rect.setAttribute('height', b.h);
       e.title.setAttribute('x', b.x + 22); e.title.setAttribute('y', b.y + 54);
       e.title.textContent = fit((zi + 1) + '  ' + z.name.toUpperCase(), 36, b.w - 44);
@@ -909,7 +925,7 @@
       var b = fmPos.layers[i], e = fmLay[i];
       e.g.classList.toggle('gone', !b);
       if (!b) return;
-      e.g.dataset.tip = L.name + ' (' + fmRows[i].length + ')|' + L.sub + ' Click to zoom in.';
+      e.g.dataset.tip = catTip(L.name, L.sub, L.take, fmRows[i], true);
       e.count.textContent = fmRows[i].length;
       e.rect.setAttribute('x', b.x); e.rect.setAttribute('y', b.y); e.rect.setAttribute('width', b.w); e.rect.setAttribute('height', b.h);
       e.title.setAttribute('x', b.x + 16); e.title.setAttribute('y', b.y + 40);
@@ -962,7 +978,7 @@
     var gZones = svgEl('g'), gBg = svgEl('g', { 'class': 'fm-bg', id: 'fm-bg' }), gHi = svgEl('g', { id: 'fm-hi' }), gNodes = svgEl('g');
     ZONES.forEach(function (z, zi) {
       var g = svgEl('g', { 'class': 'zn' });
-      g.dataset.z = zi; g.dataset.tip = z.name + '|' + z.sub;
+      g.dataset.z = zi;
       setZonePal(g, zi);
       var rect = svgEl('rect', { 'class': 'zbox', rx: 30 });
       var title = svgEl('text', { 'class': 'zt' });
@@ -972,7 +988,7 @@
     });
     LAYERS.forEach(function (L, i) {
       var g = svgEl('g', { 'class': 'ly' });
-      g.dataset.l = i; g.dataset.tip = L.name + ' (' + fmRows[i].length + ')|' + L.sub + ' Click to zoom in.';
+      g.dataset.l = i;
       setPal(g, i);
       var rect = svgEl('rect', { 'class': 'band', rx: 20 });
       var title = svgEl('text', { 'class': 'lt' });

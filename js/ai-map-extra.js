@@ -109,6 +109,72 @@
   by.tsmc.loc = 'Headquarters and R&D in Hsinchu Science Park. Fabs in Hsinchu, Taichung, Tainan and Kaohsiung, plus overseas fabs in Arizona, Kumamoto (Japan) and Dresden (Germany).';
   by.ase.loc = 'Kaohsiung.'; by.mediatek.loc = 'Hsinchu Science Park.'; by.foxconn.loc = 'New Taipei.'; by.globalwafers.loc = 'Hsinchu Science Park.';
 
+  /* ---------- more countries: Korea, Japan, Europe, China, Israel, India, Gulf, mining ---------- */
+  function co(id, layer, hq, n, o) { o.hq = hq; add(id, li(layer), n, o); }
+  /* South Korea */
+  co('hanmi_semi', 'equip', 'KR', 'Hanmi Semiconductor', { d: 'hanmisemi.com', q: '042700.KS', s: 'Packaging equipment', w: 'Makes thermocompression bonders that stack HBM memory chips.', y: 'HBM stacking is a bottleneck of AI chips, and these machines do the stacking for SK hynix.', p: 'Grew fast with HBM; rivals are catching up.', up: [] });
+  co('samsung_em', 'materials', 'KR', 'Samsung Electro-Mechanics', { d: 'samsungsem.com', q: '009150.KS', s: 'Substrates', w: 'Package substrates and ceramic capacitors (MLCC).', y: 'Advanced substrates are tight, and Korea is trying to build its own supply.', p: 'Moving into AI-chip substrates.', up: ['ajinomoto', 'nittobo'] });
+  /* Japan */
+  co('renesas', 'chips', 'JP', 'Renesas', { d: 'renesas.com', q: '6723.T', s: 'Chip designer', w: 'Microcontrollers and power chips for cars and industry.', y: 'Cars and factories run on chips like these, not on AI GPUs.', p: 'Cyclical with auto and industrial demand.', up: ['tsmc', 'synopsys', 'cadence'] });
+  co('kioxia', 'fabs', 'JP', 'Kioxia', { d: 'kioxia.com', q: '285A.T', s: 'Memory', w: 'Maker of NAND flash memory (SSD storage).', y: 'AI data centres need huge amounts of fast storage.', p: 'Recovering with AI storage demand.', up: ['tokyo_electron', 'lam', 'kla', 'shin_etsu', 'sumco', 'linde'] });
+  co('screen', 'equip', 'JP', 'SCREEN Holdings', { d: 'screen.co.jp', q: '7735.T', s: 'Chip equipment', w: 'Wafer cleaning tools, a leader in single-wafer cleaning.', y: 'Every chip layer needs cleaning, so these tools sell with every fab.', p: 'Steady with fab investment.', up: [] });
+  co('kokusai', 'equip', 'JP', 'Kokusai Electric', { d: 'kokusai-electric.com', q: '6525.T', s: 'Chip equipment', w: 'Batch deposition furnaces for chip layers.', y: 'A key supplier of furnaces for logic and memory fabs.', p: 'Growing with chip investment.', up: [] });
+  co('ebara', 'parts', 'JP', 'Ebara', { d: 'ebara.com', q: '6361.T', s: 'Fab parts', w: 'CMP polishing tools and dry vacuum pumps.', y: 'Wafers are polished flat dozens of times, and vacuum pumps run constantly in a fab.', p: 'Benefiting from fab expansion.', up: [] });
+  co('dnp', 'materials', 'JP', 'Dai Nippon Printing (DNP)', { d: 'dnp.co.jp', q: '7912.T', s: 'Photomasks', w: 'Photomasks for chip making, and a leader in EUV masks.', y: 'No mask, no chip. DNP and Toppan are the main independent mask makers.', p: 'Steady, with EUV growth.', up: ['hoya'] });
+  /* Europe */
+  co('nxp', 'chips', 'NL', 'NXP Semiconductors', { d: 'nxp.com', q: 'NXPI', s: 'Chip designer', w: 'Chips for cars, industry and secure payments.', y: 'Cars rely on chips like these, and shortages in 2021 halted production.', p: 'Cyclical with auto demand.', up: ['tsmc', 'synopsys', 'cadence'] });
+  co('infineon', 'chips', 'DE', 'Infineon', { d: 'infineon.com', q: 'IFX.DE', s: 'Power chips', w: 'Power semiconductors for cars, grids and AI servers.', y: 'Each AI rack needs large amounts of power conversion, and Infineon is a leader in the chips for it.', p: 'Growing with AI power demand.', up: ['siltronic', 'linde', 'applied_materials'] });
+  co('stmicro', 'chips', 'CH', 'STMicroelectronics', { d: 'st.com', q: 'STM', s: 'Chip designer', w: 'Chips for cars and industry, including silicon carbide power chips.', y: 'Europe\'s largest chipmaker, with fabs in Italy and France.', p: 'Cyclical with auto and industrial demand.', up: ['applied_materials', 'soitec', 'linde'] });
+  co('aixtron', 'equip', 'DE', 'AIXTRON', { d: 'aixtron.com', q: 'AIXA.DE', s: 'Chip equipment', w: 'MOCVD reactors that grow layers for LEDs, lasers and power chips.', y: 'Optical links and power chips both start on its machines.', p: 'Tied to optical and power-chip investment.', up: [] });
+  co('suss', 'equip', 'DE', 'SUSS MicroTec', { d: 'suss.com', q: 'SMHN.DE', s: 'Packaging equipment', w: 'Bonding and lithography tools for advanced packaging.', y: 'Hybrid bonding and CoWoS-type packaging depend on tools like these.', p: 'Orders track advanced-packaging build.', up: [] });
+  co('siltronic', 'materials', 'DE', 'Siltronic', { d: 'siltronic.com', q: 'WAF.DE', s: 'Wafers', w: 'Silicon wafers, one of the five biggest suppliers.', y: 'Europe\'s home source of wafers.', p: 'Recovering with chip demand.', up: ['crucible', 'wacker'] });
+  co('soitec', 'materials', 'FR', 'Soitec', { d: 'soitec.com', q: 'SOI.PA', s: 'Wafers', w: 'Engineered wafers (silicon-on-insulator) for phones, cars and photonics.', y: 'The standard source of SOI wafers used in RF chips and silicon photonics.', p: 'Hit by phone and auto softness.', up: [] });
+  co('arianegroup', 'rocket', 'FR', 'ArianeGroup', { d: 'arianegroup.com', s: 'Launcher maker', w: 'Builds the Ariane rockets; a joint venture of Airbus and Safran.', y: 'Europe\'s own route to orbit.', p: 'Ramping Ariane 6.', up: [] });
+  co('imec', 'chips', 'BE', 'imec', { d: 'imec-int.com', s: 'Research institute (technology)', w: 'Belgian research hub where chipmakers and tool makers jointly develop next-generation processes.', y: 'Much of tomorrow\'s chip technology, including High-NA EUV, is first proven here.', p: 'Core to Europe\'s chip research.', o: 'A place to prove a new tool, material or process with the whole industry watching.', up: [] });
+  co('umicore', 'materials', 'BE', 'Umicore', { d: 'umicore.com', q: 'UMI.BR', s: 'Materials', w: 'Specialty metals, including germanium substrates for space solar cells.', y: 'One of few sources of germanium outside China.', p: 'Restructuring battery materials.', up: [] });
+  co('iqe', 'materials', 'GB', 'IQE', { d: 'iqep.com', q: 'IQE.L', s: 'Wafers', w: 'Epitaxial wafers for lasers, RF chips and sensors.', y: 'Optical links and 3D sensing depend on wafers like these.', p: 'Restructuring.', up: ['china_gallium'] });
+  co('oxford_inst', 'equip', 'GB', 'Oxford Instruments', { d: 'oxinst.com', q: 'OXIG.L', s: 'Chip equipment', w: 'Etch and deposition tools for compound-semiconductor and quantum devices.', y: 'Used where silicon tools do not fit, such as lasers and power chips.', p: 'Steady.', up: [] });
+  /* Israel */
+  co('nova', 'equip', 'IL', 'Nova', { d: 'novami.com', q: 'NVMI', s: 'Chip equipment', w: 'Optical measurement tools that check chip layers as they are built.', y: 'Every new process node needs more measurement.', p: 'Growing with advanced-node and packaging demand.', up: [] });
+  co('camtek', 'equip', 'IL', 'Camtek', { d: 'camtek.com', q: 'CAMT', s: 'Chip equipment', w: 'Inspection tools for advanced packaging, including AI chip packages.', y: 'A key supplier for CoWoS-type inspection.', p: 'Growing with AI packaging.', up: [] });
+  co('tower', 'fabs', 'IL', 'Tower Semiconductor', { d: 'towersemi.com', q: 'TSEM', s: 'Foundry', w: 'Specialty foundry for analog, RF and silicon-photonics chips.', y: 'Makes many of the chips inside optical transceivers.', p: 'Growing with silicon photonics.', up: ['applied_materials', 'asml', 'sumco', 'linde'] });
+  /* India, Southeast Asia */
+  co('tata_elec', 'fabs', 'IN', 'Tata Electronics', { d: 'tata.com', s: 'Fab and packaging builder', w: 'Building India\'s first large chip fab (with PSMC) and chip-packaging plants.', y: 'India\'s attempt to join the chip supply chain.', p: 'Under construction.', o: 'A new ecosystem needs tools, materials, engineers and services from scratch.', up: ['psmc', 'applied_materials'] });
+  co('inari', 'fabs', 'MY', 'Inari Amertron', { d: 'inari-amertron.com.my', q: 'INRI.KL', s: 'Chip packaging and test', w: 'Packages and tests RF and optical chips, largely in Malaysia.', y: 'Malaysia handles a big share of the world\'s chip packaging and test.', p: 'Steady growth.', up: ['disco', 'advantest'] });
+  /* China */
+  co('naura', 'equip', 'CN', 'NAURA', { d: 'naura.com', q: '002371.SZ', s: 'Chip equipment', w: 'China\'s largest chip-equipment maker, covering etch, deposition and cleaning.', y: 'China\'s answer to export controls on Western tools.', p: 'Fast growth on domestic demand.', up: [] });
+  co('amec', 'equip', 'CN', 'AMEC', { d: 'amecnsh.com', q: '688012.SS', s: 'Chip equipment', w: 'Etch and deposition tools, strong in China.', y: 'A main domestic alternative to Lam and Applied.', p: 'Fast growth on domestic demand.', up: [] });
+  co('ymtc', 'fabs', 'CN', 'YMTC', { d: 'ymtc.com', s: 'Memory', w: 'Chinese maker of NAND flash memory.', y: 'China\'s main NAND maker, restricted by US export controls.', p: 'Growing at home despite restrictions.', up: ['naura', 'amec'] });
+  co('cxmt', 'fabs', 'CN', 'CXMT', { d: 'cxmt.com', s: 'Memory', w: 'Chinese maker of DRAM memory, working towards HBM.', y: 'China\'s main DRAM maker.', p: 'Expanding capacity.', up: ['naura', 'amec'] });
+  co('hua_hong', 'fabs', 'CN', 'Hua Hong Semiconductor', { d: 'huahonggrace.com', q: '1347.HK', s: 'Foundry', w: 'Mature-node foundry for power, analog and embedded chips.', y: 'Second-largest Chinese foundry after SMIC.', p: 'Steady on domestic demand.', up: ['naura', 'amec'] });
+  co('jcet', 'fabs', 'CN', 'JCET', { d: 'jcetglobal.com', q: '600584.SS', s: 'Chip packaging and test', w: 'China\'s largest chip packaging and test company.', y: 'Top-three global packager, and a hedge for Chinese chip designers.', p: 'Steady growth.', up: ['disco', 'advantest', 'besi'] });
+  co('cambricon', 'chips', 'CN', 'Cambricon', { d: 'cambricon.com', q: '688256.SS', s: 'Chip designer', w: 'Designs AI accelerator chips for Chinese data centres.', y: 'One of China\'s main domestic alternatives to NVIDIA.', p: 'Very fast growth from a small base.', up: ['smic'] });
+  co('catl', 'energy', 'CN', 'CATL', { d: 'catl.com', q: '300750.SZ', s: 'Batteries', w: 'World\'s largest battery maker, for cars and grid storage.', y: 'Grid batteries are how data centres smooth power demand.', p: 'Leading global share.', up: [] });
+  /* Gulf */
+  co('g42', 'labs', 'AE', 'G42', { d: 'g42.ai', s: 'AI company', w: 'Abu Dhabi AI group building models and large GPU clusters.', y: 'A main vehicle for the UAE\'s AI ambitions, with Microsoft as an investor.', p: 'Scaling compute with US partners.', up: ['azure', 'nvidia', 'cerebras'] });
+  co('humain', 'labs', 'SA', 'HUMAIN', { d: 'humain.ai', s: 'AI company', w: 'Saudi AI company backed by the Public Investment Fund.', y: 'Saudi Arabia\'s push to host AI data centres and models.', p: 'Newly formed, signing chip and cloud deals.', up: ['nvidia', 'aws', 'amd', 'qualcomm'] });
+  co('pif', 'capital', 'SA', 'Public Investment Fund (PIF)', { d: 'pif.gov.sa', s: 'Sovereign wealth fund', w: 'Saudi Arabia\'s sovereign wealth fund.', y: 'Gulf sovereign money is now a major source of AI capital.', p: 'Large and growing.', up: ['humain'] });
+  /* Singapore and Austria */
+  co('gic', 'capital', 'SG', 'GIC', { d: 'gic.com.sg', s: 'Sovereign wealth fund', w: 'Singapore\'s sovereign wealth fund, a large investor in data centres and infrastructure.', y: 'A long-term source of infrastructure capital.', p: 'Steady.', up: ['equinix'] });
+  co('ev_group', 'equip', 'AT', 'EV Group', { d: 'evgroup.com', s: 'Packaging equipment', w: 'Wafer bonding tools, a leader in hybrid bonding.', y: '3D chip stacking relies on bonding machines like these.', p: 'Growing with advanced packaging.', up: [] });
+  /* mining and materials */
+  co('teck', 'raw', 'CA', 'Teck Resources', { d: 'teck.com', q: 'TECK', s: 'Miner', w: 'Copper and zinc miner whose smelter also produces germanium.', y: 'A western source of copper and of germanium for optics and solar.', p: 'Copper-focused after a coal sale.', up: [] });
+  co('bhp', 'raw', 'AU', 'BHP', { d: 'bhp.com', q: 'BHP', s: 'Miner', w: 'World\'s biggest miner; one of the largest copper producers.', y: 'AI needs a lot of copper for power and cooling.', p: 'Copper is a growing share of its mix.', up: [] });
+  co('lynas', 'raw', 'AU', 'Lynas Rare Earths', { d: 'lynasrareearths.com', q: 'LYC.AX', s: 'Miner', w: 'Largest rare-earth producer outside China.', y: 'A main alternative to Chinese rare earths for magnets.', p: 'Expanding processing in the US and Malaysia.', up: [] });
+  co('codelco', 'raw', 'CL', 'Codelco', { d: 'codelco.com', s: 'State miner (government-owned)', w: 'Chile\'s state-owned copper miner, the world\'s largest.', y: 'Copper supply for grids and data centres starts in places like this.', p: 'Output under pressure from ageing mines.', up: [] });
+  co('elkem', 'raw', 'NO', 'Elkem', { d: 'elkem.com', q: 'ELK.OL', s: 'Silicon producer', w: 'Silicon metal and silicones, from low-carbon Norwegian power.', y: 'Silicon metal is the first step towards polysilicon and wafers.', p: 'Hit by weak silicone prices.', up: [] });
+
+  /* wire the new players into the existing map */
+  function link(buyer, supplier) { if (by[buyer] && by[supplier] && by[buyer].up.indexOf(supplier) < 0) by[buyer].up.push(supplier); }
+  ['screen', 'kokusai', 'nova', 'camtek', 'suss', 'ev_group', 'siltronic', 'dnp'].forEach(function (id) { link('tsmc', id); });
+  link('sk_hynix', 'hanmi_semi'); link('micron', 'hanmi_semi'); link('samsung_foundry', 'samsung_em'); link('smic', 'naura'); link('smic', 'amec');
+  link('asml', 'imec'); link('delta_elec', 'infineon'); link('vertiv', 'infineon'); link('tesla', 'infineon'); link('tesla', 'nxp'); link('tesla', 'renesas');
+  link('spectrolab', 'umicore'); link('coherent', 'iqe'); link('lumentum', 'tower'); link('innolight', 'tower'); link('arianespace', 'arianegroup');
+  link('tesla_energy', 'catl'); link('wacker', 'elkem'); link('tesla', 'lynas');
+  ['vertiv', 'schneider', 'eaton', 'abb', 'ge_vernova', 'siemens_energy', 'hitachi_energy', 'amphenol'].forEach(function (b) { link(b, 'bhp'); link(b, 'codelco'); });
+  link('amphenol', 'teck');
+  link('globalfoundries', 'soitec'); link('stmicro', 'soitec');
+
   /* ---------- headquarters country (ISO-2; WW = no single country) ---------- */
   var HQ = {
     amazon: 'US', walmart: 'US', shopify: 'CA', temu: 'CN', costco: 'US', ups: 'US', fedex: 'US',
@@ -195,7 +261,7 @@
   D.COUNTRIES = {
     US: 'United States', TW: 'Taiwan', JP: 'Japan', KR: 'South Korea', CN: 'China', NL: 'Netherlands', DE: 'Germany', GB: 'United Kingdom',
     CH: 'Switzerland', FR: 'France', IE: 'Ireland', CA: 'Canada', SE: 'Sweden', DK: 'Denmark', IL: 'Israel', AU: 'Australia',
-    AE: 'UAE', ES: 'Spain', FI: 'Finland', BE: 'Belgium', NO: 'Norway', WW: 'Global / no single country'
+    AE: 'UAE', ES: 'Spain', FI: 'Finland', BE: 'Belgium', NO: 'Norway', IN: 'India', SG: 'Singapore', MY: 'Malaysia', CL: 'Chile', SA: 'Saudi Arabia', AT: 'Austria', WW: 'Global / no single country'
   };
 
   /* ---------- industry views ----------
@@ -225,6 +291,30 @@
     { name: 'TSMC customers', ids: ['nvidia', 'amd', 'apple_si', 'broadcom', 'qualcomm', 'marvell', 'google_tpu', 'aws_trainium'] },
     { name: 'Foreign suppliers', ids: ['asml', 'applied_materials', 'lam', 'tokyo_electron', 'kla', 'shin_etsu', 'sumco', 'entegris', 'ajinomoto', 'nittobo'] }
   ];
+  var GDESC = {
+    'Compute': 'The processors that train and run models: GPUs, TPUs and custom accelerators.',
+    'Memory': 'HBM memory stacked beside each AI chip. Without it the processor starves, and only three companies make it.',
+    'Foundry & packaging': 'The factories that print the chips and the packaging that joins processor and memory.',
+    'Chip tools': 'The machines that make the chips. Lithography (ASML) is the hardest to replace.',
+    'Servers & networking': 'The boxes and switches that turn thousands of chips into one cluster.',
+    'Optics': 'Lasers and fibre that move data between racks at the speed of light.',
+    'Power': 'The electricity: nuclear, gas, solar, batteries and fuel cells.',
+    'Grid gear': 'Turbines, transformers and switchgear. Long waits for these slow new data centres.',
+    'Cooling & buildings': 'The halls, cooling and backup power that keep chips running.',
+    'Minerals & gases': 'Copper, quartz, rare earths and gases at the bottom of the chain.',
+    'All Taiwan': 'Every Taiwan-headquartered player in this view.',
+    'Design services': 'Companies that design chips for others, then have TSMC build them.',
+    'Foundry & memory': 'TSMC and Taiwan\'s other chip factories, including memory.',
+    'Packaging & test': 'Joining chips into packages and testing them, plus the substrates they sit on.',
+    'Fab tools': 'Local equipment makers that sell to TSMC\'s fab and packaging lines.',
+    'Fab facilities': 'The firms that build and supply the factory itself: cleanrooms, gas systems, mask pods and power.',
+    'Wafers & masks': 'The silicon wafers, photomasks and circuit-board laminates fabs consume.',
+    'Servers': 'Taiwan companies that assemble most of the world\'s AI servers.',
+    'Power & cooling': 'Power supplies and cooling for AI racks.',
+    'TSMC customers': 'Chip designers that rely on TSMC to build their chips.',
+    'Foreign suppliers': 'Non-Taiwan tool and material makers TSMC depends on.'
+  };
+  [AI_GROUPS, TW_GROUPS].forEach(function (gs) { gs.forEach(function (g) { g.desc = GDESC[g.name] || ''; }); });
   D.VIEWS = [
     { id: 'all', name: 'Everything', blurb: 'The whole map, from household spending down to raw materials.' },
     { id: 'model', name: 'AI model', blurb: 'What it physically takes to train and run an AI model: chips, memory, servers, power, buildings and minerals.',

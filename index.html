@@ -343,12 +343,12 @@
   <div class="row r1">
     <a class="brand" href="https://mindy-portfolio.vercel.app" data-tip="Mindy Wu|Back to the portfolio.">The AI Ecosystem<span>by Mindy Wu</span></a>
     <div class="seg" role="group" aria-label="Layout">
-      <button type="button" data-mode="map" aria-pressed="true">Full map</button>
-      <button type="button" data-mode="layers" aria-pressed="false">Layers</button>
+      <button type="button" data-mode="map" aria-pressed="true" data-tip="Full map|Everything on one zoomable map. Scroll to zoom, drag to pan.">Full map</button>
+      <button type="button" data-mode="layers" aria-pressed="false" data-tip="Layers|A scrolling list, one layer at a time. Good for phones and keyboards.">Layers</button>
     </div>
-    <input id="q" type="search" placeholder="Search (press /)" aria-label="Search companies" autocomplete="off">
-    <button class="pill" id="jbtn" type="button" aria-haspopup="true" aria-expanded="false">Journeys &#9662;</button>
-    <button class="pill" id="reset" type="button">Reset</button>
+    <input id="q" data-tip="Search|Type a company, ticker or topic. Press Enter to open the first match." type="search" placeholder="Search (press /)" aria-label="Search companies" autocomplete="off">
+    <button class="pill" id="jbtn" data-tip="Guided journeys|Follow one everyday thing, like an Amazon order, all the way down to a mine." type="button" aria-haspopup="true" aria-expanded="false">Journeys &#9662;</button>
+    <button class="pill" id="reset" type="button" data-tip="Reset|Clear the search, filters, view and selection.">Reset</button>
     <span class="sp" style="flex:1"></span>
     <span id="count"></span>
     <a class="pill" href="about.html">About</a>
@@ -361,9 +361,9 @@
     <div class="seg vseg" id="views" role="group" aria-label="Industry view"></div>
     <span id="viewnote"></span>
     <span class="sp"></span>
-    <select id="country" aria-label="Filter by headquarters country"><option value="">Any country</option></select>
+    <select id="country" aria-label="Filter by headquarters country" data-tip="Country|Show only companies headquartered in one country. The list updates with the view and shows how many players each country has."><option value="">Any country</option></select>
     <button class="tgl" id="choke" type="button" aria-pressed="false" data-tip="Bottlenecks|Steps where one or very few suppliers control supply, so they are hard to replace. Click one for why.">&#9670; Bottlenecks</button>
-    <select id="type" aria-label="Filter by type of player">
+    <select id="type" aria-label="Filter by type of player" data-tip="Type|Public companies have a stock ticker, private ones do not, and some items are not companies at all: governments, technologies and raw materials.">
       <option value="all">All types</option><option value="public">Public</option><option value="private">Private</option><option value="other">Not a company</option>
     </select>
     <div class="seg" role="group" aria-label="Line depth">

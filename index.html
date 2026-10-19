@@ -152,6 +152,7 @@
     .chip:hover { border-color: var(--accent); color: var(--accent); }
     .p-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
     .p-links a, .p-links button { font-size: 13px; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--border); text-decoration: none; color: var(--ink); background: var(--surface-2); }
+    .p-links .primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
     .p-links a:hover, .p-links button:hover { border-color: var(--accent); color: var(--accent); }
 
     /* ===== journey card ===== */
@@ -315,6 +316,57 @@
     .fm-groups button:hover, .fm-groups button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
     @media (max-width: 900px) { .fm-groups { display: none; } }
 
+
+    /* ===== supply-chain branch page ===== */
+    #branch { position: fixed; z-index: 60; left: 0; right: 0; bottom: 0; top: var(--bar); display: flex; flex-direction: column; background: linear-gradient(120deg, #F3F7FA 0%, #E3EBF1 40%, #EEF3F7 100%); }
+    #branch[hidden] { display: none; }
+    html[data-mw-theme="dark"] #branch { background: linear-gradient(120deg, #0B131A 0%, #111D27 40%, #0D1820 100%); }
+    .br-top { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); flex-wrap: wrap; }
+    .br-top .sp { flex: 1; }
+    .br-title { display: flex; flex-direction: column; min-width: 0; max-width: 380px; }
+    .br-title b { font: 600 19px 'Fraunces', serif; line-height: 1.2; }
+    .br-title span { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .br-crumbs { display: flex; gap: 4px; align-items: center; font-size: 12px; }
+    .br-crumb { color: var(--accent); font: inherit; font-size: 12px; } .br-crumb:hover { text-decoration: underline; } .br-sep { color: var(--muted); }
+    #br-logo .lg { flex-shrink: 0; }
+    .br-stats { display: flex; gap: 12px; font-size: 13px; color: var(--ink-soft); } .br-stat b { font-size: 16px; color: var(--ink); }
+    .br-weak { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .br-wl { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--cus); font-weight: 700; }
+    .br-chip { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--cus); color: var(--cus); font: inherit; font-size: 12.5px; background: var(--surface); }
+    .br-chip:hover { background: var(--cus); color: #fff; }
+    .br-scroll { flex: 1; overflow: auto; padding: 14px; }
+    .br-grid { position: relative; width: max-content; min-width: 100%; --bw: 130px; --gap: 40px; }
+    #br-svg { position: absolute; left: 0; top: 0; z-index: 1; overflow: visible; pointer-events: none; }
+    .br-cols { position: relative; z-index: 2; display: flex; gap: var(--gap); align-items: stretch; }
+    .br-col { width: var(--bw); display: flex; flex-direction: column; flex-shrink: 0; }
+    .br-col h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; gap: 6px; line-height: 1.25; }
+    .br-col h3 i { font-style: normal; font-weight: 500; opacity: .7; }
+    .br-nodes { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; }
+    .bn { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 5px 5px; border-radius: 14px; background: var(--surface); border: 2px solid var(--c, var(--border)); text-align: center; font: inherit; color: var(--ink); cursor: pointer; transition: opacity .2s, transform .15s, box-shadow .2s; }
+    .bn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -12px rgba(0,0,0,.5); }
+    .bn .lg-m { width: 30px; height: 30px; }
+    .bn-n { font-size: 12px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+    .bn-m { font: 500 10.5px 'JetBrains Mono', monospace; color: var(--muted); }
+    .bn-c { position: absolute; top: 2px; right: 6px; color: var(--cus); font-size: 14px; }
+    .bn.root { border-width: 3px; box-shadow: 0 0 0 4px rgba(255,255,255,.5); }
+    .bn.sel { border-color: var(--ink); box-shadow: 0 0 0 3px var(--ink); }
+    .bn.sup { border-color: var(--sup); } .bn.cus { border-color: var(--cus); }
+    .bn.dim { opacity: .22; }
+    .br-more { margin-top: 10px; padding: 7px 10px; border-radius: 999px; border: 1px dashed var(--border); color: var(--ink-soft); font: inherit; font-size: 12.5px; background: var(--surface); }
+    .br-more:hover { border-color: var(--accent); color: var(--accent); }
+    .br-e { fill: none; stroke: var(--ink); stroke-opacity: .18; stroke-width: 1.2; }
+    .br-e.faint { stroke-opacity: .05; }
+    .br-e.sup { stroke: var(--sup); stroke-opacity: .85; stroke-width: 2.2; }
+    .br-e.cus { stroke: var(--cus); stroke-opacity: .85; stroke-width: 2.2; }
+    .br-e.strong { stroke-width: 3.4; stroke-opacity: 1; }
+    .br-hit { fill: none; stroke: transparent; stroke-width: 16px; pointer-events: stroke; }
+    .br-fl { font: 600 12.5px 'DM Sans', sans-serif; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+    .br-hint { margin: 0; padding: 6px 16px 8px; font-size: 12.5px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); background: var(--glass); }
+    body.in-branch { overflow: hidden; }
+    body.in-branch .fm-hint, body.in-branch #fm-groups { display: none; }
+    @media (min-width: 901px) { body.has-panel.in-branch .br-scroll { padding-right: 460px; } }
+    @media (max-width: 900px) { .br-stats, .br-weak { display: none; } .br-title { max-width: 60vw; } .br-hint { display: none; } }
+
     /* ===== mobile ===== */
     @media (max-width: 900px) {
       .wrap { padding: 0 14px; }
@@ -408,10 +460,28 @@
 
 <div id="journey" hidden role="dialog" aria-label="Guided journey"></div>
 
+<div id="branch" hidden role="dialog" aria-label="Supply chain">
+  <header class="br-top">
+    <button class="pill" id="br-back" type="button">&larr; Back to map</button>
+    <span id="br-logo"></span>
+    <div class="br-title"><div class="br-crumbs" id="br-trail"></div><b id="br-name"></b><span id="br-sub"></span></div>
+    <div class="br-stats" id="br-stats"></div>
+    <div class="br-weak" id="br-weak"></div>
+    <span class="sp"></span>
+    <button class="tgl" id="br-all" type="button" aria-pressed="false" data-tip="Show everyone|Open every column fully. Busy, but complete.">Show everyone</button>
+    <button class="pill" id="br-copy" type="button">Copy link</button>
+  </header>
+  <div class="br-scroll" id="br-scroll">
+    <div class="br-grid" id="br-grid"><svg id="br-svg" aria-hidden="true"></svg><div class="br-cols" id="br-cols"></div></div>
+  </div>
+  <p class="br-hint">Hover or click a company to trace its path. Double-click to make it the starting point. Esc goes back.</p>
+</div>
+
 <script src="js/ai-tip.js"></script>
 <script src="js/ai-map-data.js"></script>
 <script src="js/ai-map-extra.js"></script>
 <script src="js/ai-map-flows.js"></script>
 <script src="js/ai-map.js"></script>
+<script src="js/ai-map-branch.js"></script>
 </body>
 </html>

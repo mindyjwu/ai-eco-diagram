@@ -5,7 +5,7 @@
    ============================================================ */
 (function () {
   'use strict';
-  var D = window.AIMAP;
+  var D = window.AIMAP, INITIAL_HASH = location.hash;
   var LAYERS = D.LAYERS, NODES = D.NODES, JOURNEYS = D.JOURNEYS;
 
   /* ---------- index ---------- */
@@ -430,6 +430,8 @@
     var links = el('div', 'p-links');
     if (n.d) { var a = el('a', null, 'Website ↗'); a.href = 'https://' + n.d; a.target = '_blank'; a.rel = 'noopener'; links.appendChild(a); }
     if (n.pq) { var q = el('a', null, 'Live quote ↗'); q.href = 'https://finance.yahoo.com/quote/' + encodeURIComponent(n.pq); q.target = '_blank'; q.rel = 'noopener'; links.appendChild(q); }
+    var BR = window.AIMAP_API && window.AIMAP_API.branch;
+    if (BR && n.l !== 0) { var ob = el('button', 'primary', 'Open supply chain'); ob.type = 'button'; ob.addEventListener('click', function () { BR.open(id); }); links.appendChild(ob); }
     var sh = el('button', null, 'Copy link'); sh.type = 'button';
     sh.addEventListener('click', function () {
       var url = location.origin + location.pathname + '#' + (state.mode === 'layers' ? 'layers&' : '') + 'n=' + id;
@@ -467,6 +469,11 @@
     try { history.replaceState(null, '', full ? '#' + full : location.pathname + location.search); } catch (e) {}
   }
   function select(id, opts) {
+    var B = window.AIMAP_API && window.AIMAP_API.branch;
+    if (B) {
+      if (B.isOpen()) { B.focus(id); return; }
+      if (by[id].l === 0) { endJourney(true); state.sel = null; state.hover = null; closePanel(); B.open(id); return; }   /* a household activity opens its own supply-chain page */
+    }
     endJourney(true);
     if (!inView(by[id])) setView('all', { keep: true });
     state.sel = id; state.hover = null; state.group = -1; syncGroups();
@@ -1185,6 +1192,9 @@
     document.documentElement.dataset.mwTheme = t;
     try { localStorage.setItem('mw-theme', t); } catch (e) {}
   });
+
+  window.AIMAP_API = { by: by, down: down, LAYERS: LAYERS, setPal: setPal, logo: logo, nodeTip: nodeTip, hqLabel: hqLabel, catTip: catTip, flowOf: flowOf,
+    firstSentence: firstSentence, annotate: annotate, initialHash: INITIAL_HASH, openPanel: openPanel, closePanel: closePanel, setHash: setHash, countryName: countryName };
 
   /* ---------- initial state from URL ---------- */
   apply();

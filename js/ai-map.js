@@ -472,7 +472,7 @@
     var B = window.AIMAP_API && window.AIMAP_API.branch;
     if (B) {
       if (B.isOpen()) { B.focus(id); return; }
-      if (by[id].l === 0) { endJourney(true); state.sel = null; state.hover = null; closePanel(); B.open(id); return; }   /* a household activity opens its own supply-chain page */
+      if (B.autoOpen(id)) { endJourney(true); state.sel = null; state.hover = null; closePanel(); B.open(id); return; }   /* a household activity opens its own supply-chain page */
     }
     endJourney(true);
     if (!inView(by[id])) setView('all', { keep: true });

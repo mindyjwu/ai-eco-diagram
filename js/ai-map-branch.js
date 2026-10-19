@@ -283,9 +283,10 @@
   if ('ResizeObserver' in window) new ResizeObserver(relayout).observe(scroller);
   new MutationObserver(relayout).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-  A.branch = { open: open, close: close, focus: focus, isOpen: function () { return opened; } };
+  /* household activities and the apps, shops and devices you deal with open their own supply-chain page when clicked */
+  A.branch = { open: open, close: close, focus: focus, isOpen: function () { return opened; }, autoOpen: function (id) { return st(id) <= 1; } };
 
   var H = A.initialHash || location.hash, hb = /(?:^#|&)branch=([\w-]+)/.exec(H), hn = /(?:^#|&)n=([\w-]+)/.exec(H);
   if (hb && by[hb[1]]) open(hb[1]);
-  else if (hn && by[hn[1]] && by[hn[1]].l === 0) open(hn[1]);
+  else if (hn && by[hn[1]] && A.branch.autoOpen(hn[1])) open(hn[1]);
 })();

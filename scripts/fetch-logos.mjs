@@ -9,6 +9,8 @@
    live favicon services for anything missing. Needs Node 18+ and internet access. */
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -126,11 +128,20 @@ const WIKI_PAGE = {
   'macronix.com': 'Macronix', 'unimicron.com': 'Unimicron', 'ulalaunch.com': 'United Launch Alliance',
   'nanyapcb.com.tw': 'Nan Ya PCB', 'inari-amertron.com.my': 'Inari Amertron', 'jcetglobal.com': 'JCET Group',
 };
-async function getBuf(url, ms = 12000) {
-  const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(ms), headers: { 'user-agent': UA, accept: 'image/*,text/html,*/*' } });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return { buf: Buffer.from(await res.arrayBuffer()), type: (res.headers.get('content-type') || '').toLowerCase(), url: res.url };
+/* curl gets through some bot filters that drop Node's own HTTP client, and tells us why a request failed. */
+const WIKI_UA = 'ai-eco-diagram logo fetch (https://github.com/mindyjwu/ai-eco-diagram)';
+function curlGet(url, ms = 20000, ua = UA) {
+  const tmp = path.join(os.tmpdir(), 'logo-' + Math.random().toString(36).slice(2));
+  try {
+    const meta = execFileSync('curl', ['-sSL', '--max-time', String(Math.ceil(ms / 1000)), '--compressed', '-A', ua, '-H', 'Accept: image/*,text/html,application/json,*/*', '-o', tmp, '-w', '%{http_code}|%{content_type}|%{url_effective}', url], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    const [code, type, eff] = meta.split('|');
+    if (!/^2/.test(code)) throw new Error('HTTP ' + code);
+    return { buf: fs.readFileSync(tmp), type: (type || '').toLowerCase(), url: eff };
+  } catch (e) {
+    throw new Error(String(e.stderr || e.message || 'curl failed').trim().split('\n')[0].slice(0, 90));
+  } finally { try { fs.unlinkSync(tmp); } catch { /* nothing to clean */ } }
 }
+async function getBuf(url, ms) { return curlGet(url, ms); }
 const extFromUrl = (u) => { const m = /\.(png|jpe?g|webp|ico|svg)(\?|$)/i.exec(u); return m ? m[1].toLowerCase().replace('jpeg', 'jpg') : null; };
 function iconsFromHtml(html, base) {
   const out = [];
@@ -151,8 +162,11 @@ async function saveIcon(d, name, url, log) {
   try {
     const { buf, type } = await getBuf(url);
     const e = ext(type) || extFromUrl(url);
-    if (!e || e === 'svg' || e === 'webp') { log.push(`${name}: ${url} is ${e || type}`); return null; }
-    if (!good('site', buf, e)) { log.push(`${name}: ${url} too small`); return null; }
+    if (e === 'svg') {
+      const text = buf.toString('utf8');
+      if (!/<svg[\s>]/i.test(text) || buf.length < 300) { log.push(`${name}: ${url} is not a usable svg`); return null; }
+    } else if (!e || e === 'webp') { log.push(`${name}: ${url} is ${e || type}`); return null; }
+    else if (!good('site', buf, e)) { log.push(`${name}: ${url} too small`); return null; }
     const file = `${d}.${e}`; fs.writeFileSync(path.join(outDir, file), buf);
     console.log(`\n  ${d}: used ${name} ${url}`);
     return file;
@@ -171,7 +185,7 @@ async function grabHtml(d, log) {
 async function grabWayback(d, log) {
   for (const host of [d, 'www.' + d]) {
     try {
-      const api = await (await fetch(`https://archive.org/wayback/available?url=${host}`, { signal: AbortSignal.timeout(12000) })).json();
+      const api = JSON.parse(curlGet(`https://archive.org/wayback/available?url=${host}`, 20000).buf.toString('utf8'));
       const snap = api.archived_snapshots?.closest?.url;
       if (!snap) { log.push(`wayback ${host}: no snapshot`); continue; }
       const raw = snap.replace(/\/web\/(\d+)\//, '/web/$1id_/');
@@ -188,7 +202,7 @@ async function grabWikiPage(d, log) {
   const title = WIKI_PAGE[d];
   if (!title) return null;
   try {
-    const res = await (await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages|description&piprop=thumbnail&pithumbsize=256&redirects=1&titles=${encodeURIComponent(title)}&format=json&origin=*`, { signal: AbortSignal.timeout(12000), headers: { 'user-agent': UA } })).json();
+    const res = JSON.parse(curlGet(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages|description&piprop=thumbnail&pithumbsize=256&redirects=1&titles=${encodeURIComponent(title)}&format=json`, 20000, WIKI_UA).buf.toString('utf8'));
     const page = Object.values(res.query?.pages || {})[0];
     const src = page?.thumbnail?.source;
     if (!src) { log.push(`wikipedia "${title}": no lead image`); return null; }

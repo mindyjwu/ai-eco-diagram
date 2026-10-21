@@ -120,6 +120,83 @@ function good(name, buf, e) {
   return w != null ? w >= 16 : buf.length >= 300;
 }
 
+/* More ways to find a logo for sites that block plain favicon requests. Each notes why it failed in `log`. */
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+const WIKI_PAGE = {
+  'macronix.com': 'Macronix', 'unimicron.com': 'Unimicron', 'ulalaunch.com': 'United Launch Alliance',
+  'nanyapcb.com.tw': 'Nan Ya PCB', 'inari-amertron.com.my': 'Inari Amertron', 'jcetglobal.com': 'JCET Group',
+};
+async function getBuf(url, ms = 12000) {
+  const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(ms), headers: { 'user-agent': UA, accept: 'image/*,text/html,*/*' } });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return { buf: Buffer.from(await res.arrayBuffer()), type: (res.headers.get('content-type') || '').toLowerCase(), url: res.url };
+}
+const extFromUrl = (u) => { const m = /\.(png|jpe?g|webp|ico|svg)(\?|$)/i.exec(u); return m ? m[1].toLowerCase().replace('jpeg', 'jpg') : null; };
+function iconsFromHtml(html, base) {
+  const out = [];
+  const add = (href, rank) => { try { out.push({ url: new URL(href, base).href, rank }); } catch { /* bad url */ } };
+  for (const m of html.matchAll(/<link\b[^>]*>/gi)) {
+    const tag = m[0], rel = /rel=["']([^"']+)["']/i.exec(tag)?.[1] || '', href = /href=["']([^"']+)["']/i.exec(tag)?.[1];
+    if (!href || !/icon/i.test(rel)) continue;
+    const size = parseInt(/sizes=["'](\d+)/i.exec(tag)?.[1] || '0', 10);
+    add(href, (/apple-touch/i.test(rel) ? 1000 : 500) + size);
+  }
+  for (const m of html.matchAll(/<meta\b[^>]*>/gi)) {
+    const tag = m[0];
+    if (/property=["']og:image["']/i.test(tag)) { const c = /content=["']([^"']+)["']/i.exec(tag)?.[1]; if (c) add(c, 10); }
+  }
+  return out.sort((x, y) => y.rank - x.rank).map((x) => x.url);
+}
+async function saveIcon(d, name, url, log) {
+  try {
+    const { buf, type } = await getBuf(url);
+    const e = ext(type) || extFromUrl(url);
+    if (!e || e === 'svg' || e === 'webp') { log.push(`${name}: ${url} is ${e || type}`); return null; }
+    if (!good('site', buf, e)) { log.push(`${name}: ${url} too small`); return null; }
+    const file = `${d}.${e}`; fs.writeFileSync(path.join(outDir, file), buf);
+    console.log(`\n  ${d}: used ${name} ${url}`);
+    return file;
+  } catch (err) { log.push(`${name}: ${url} ${err.message}`); return null; }
+}
+async function grabHtml(d, log) {
+  const hosts = [d, 'www.' + d, ...(ALT[d] || [])];
+  for (const host of hosts) {
+    try {
+      const { buf, url } = await getBuf(`https://${host}/`);
+      for (const icon of iconsFromHtml(buf.toString('utf8'), url).slice(0, 6)) { const f = await saveIcon(d, 'page-icon', icon, log); if (f) return f; }
+    } catch (err) { log.push(`page ${host}: ${err.message}`); }
+  }
+  return null;
+}
+async function grabWayback(d, log) {
+  for (const host of [d, 'www.' + d]) {
+    try {
+      const api = await (await fetch(`https://archive.org/wayback/available?url=${host}`, { signal: AbortSignal.timeout(12000) })).json();
+      const snap = api.archived_snapshots?.closest?.url;
+      if (!snap) { log.push(`wayback ${host}: no snapshot`); continue; }
+      const raw = snap.replace(/\/web\/(\d+)\//, '/web/$1id_/');
+      const { buf } = await getBuf(raw);
+      for (const icon of iconsFromHtml(buf.toString('utf8'), `https://${host}/`).slice(0, 6)) {
+        const ts = /\/web\/(\d+)/.exec(snap)?.[1];
+        const f = await saveIcon(d, 'wayback-icon', `https://web.archive.org/web/${ts}im_/${icon}`, log); if (f) return f;
+      }
+    } catch (err) { log.push(`wayback ${host}: ${err.message}`); }
+  }
+  return null;
+}
+async function grabWikiPage(d, log) {
+  const title = WIKI_PAGE[d];
+  if (!title) return null;
+  try {
+    const res = await (await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages|description&piprop=thumbnail&pithumbsize=256&redirects=1&titles=${encodeURIComponent(title)}&format=json&origin=*`, { signal: AbortSignal.timeout(12000), headers: { 'user-agent': UA } })).json();
+    const page = Object.values(res.query?.pages || {})[0];
+    const src = page?.thumbnail?.source;
+    if (!src) { log.push(`wikipedia "${title}": no lead image`); return null; }
+    const f = await saveIcon(d, `wikipedia "${page.title}" (${page.description || 'no description'})`, src, log);
+    return f;
+  } catch (err) { log.push(`wikipedia "${title}": ${err.message}`); return null; }
+}
+
 async function grab(d) {
   const tries = [d];
   if (!d.startsWith('www.')) tries.push('www.' + d);
@@ -140,7 +217,10 @@ async function grab(d) {
       } catch { /* try the next source */ }
     }
   }
-  return await grabWiki(d);
+  const log = [];
+  const f = (await grabWiki(d)) || (await grabHtml(d, log)) || (await grabWayback(d, log)) || (await grabWikiPage(d, log));
+  if (!f && log.length) console.log(`\n  ${d}: ${log.slice(0, 8).join(' | ')}`);
+  return f;
 }
 
 let ok = 0, skipped = 0;
